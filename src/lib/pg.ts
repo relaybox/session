@@ -4,6 +4,7 @@ import { getLogger } from '../util/logger.util';
 const logger = getLogger(`pg-pool`);
 
 const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
+console.log('DB_CERT:', RDS_ROOT_CERTIFICATE.slice(0, 100));
 
 let pgPool: Pool;
 
@@ -24,6 +25,7 @@ export function getPgPool(): Pool {
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
     ssl: {
+      rejectUnauthorized: true,
       ca: RDS_ROOT_CERTIFICATE
     }
   });
