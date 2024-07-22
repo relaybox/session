@@ -19,7 +19,7 @@ jobs:
       name: development
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -67,18 +67,23 @@ jobs:
           envsubst < ecs/${{vars.STAGE}}/task-definition.json > ecs-task-definition.json
 
       - name: Register ECS task definition
+        id: register-task
         run: |
-          aws ecs register-task-definition \
+          TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
             --cli-input-json file://ecs-task-definition.json \
-            --region ${{ vars.AWS_REGION }}
+            --region ${{ vars.AWS_REGION }} \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task-definition-arn=$TASK_DEFINITION_ARN" >> $GITHUB_OUTPUT
 
       - name: Deploy Amazon ECS service
         run: |
           aws ecs update-service \
+            --region ${{ vars.AWS_REGION }} \
             --cluster ${{env.APP_NAME}}-${{ env.CLUSTER_NAME }}-${{vars.STAGE}}-ecs-cluster-ECSCluster-g8M6HWc0Cdph \
             --service ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{vars.STAGE}}-ecs-service-ECSService-nRbrd4FYxrs8 \
-            --force-new-deployment \
-            --region ${{ vars.AWS_REGION }}
+            --task-definition ${{ steps.register-task.outputs.task-definition-arn }} \
+            --force-new-deployment
 
       # - uses: aws-actions/configure-aws-credentials@v3
       #   with:
