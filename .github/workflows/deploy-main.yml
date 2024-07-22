@@ -56,9 +56,9 @@ jobs:
             DB_HOST=${{ vars.DB_HOST }}
             DB_NAME=${{ vars.DB_NAME }}
             DB_PORT=${{ vars.DB_PORT }}
-            DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-            DB_IDLE_TIMEOUT_MS="${{ vars.DB_IDLE_TIMEOUT_MS }}"
-            DB_MAX_CONNECTIONS="${{ vars.DB_MAX_CONNECTIONS }}"
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_IDLE_TIMEOUT_MS=${{ vars.DB_IDLE_TIMEOUT_MS }}
+            DB_MAX_CONNECTIONS=${{ vars.DB_MAX_CONNECTIONS }}
             DB_USERNAME=${{ vars.DB_USERNAME }}
             RABBIT_MQ_CONNECTION_STRING=${{ vars.RABBIT_MQ_CONNECTION_STRING }}
             REDIS_HOST=${{ vars.REDIS_HOST }}
