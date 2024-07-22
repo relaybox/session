@@ -3,6 +3,10 @@ import { getLogger } from '../util/logger.util';
 
 const logger = getLogger(`pg-pool`);
 
+const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
+
+console.log('ROOT CRET:', RDS_ROOT_CERTIFICATE.slice(0, 30));
+
 let pgPool: Pool;
 
 export function getPgPool(): Pool {
@@ -23,7 +27,7 @@ export function getPgPool(): Pool {
     connectionTimeoutMillis: 2000,
     ssl: {
       rejectUnauthorized: true,
-      ca: process.env.RDS_ROOT_CERTIFICATE
+      ca: RDS_ROOT_CERTIFICATE
     }
   });
 
