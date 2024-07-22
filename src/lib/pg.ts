@@ -22,9 +22,19 @@ export function getPgPool(): Pool {
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
     ssl: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      ca: process.env.RDS_ROOT_CERTIFICATE
     }
   });
 
   return pgPool;
 }
+
+process.on('SIGINT', async () => {
+  if (pgPool) {
+    await pgPool.end();
+    logger.info('PG pool ended through app termination');
+  }
+
+  process.exit(0);
+});

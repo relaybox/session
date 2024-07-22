@@ -4,6 +4,7 @@
   "containerDefinitions": [
     {
       "name": "relaybox-session-dev",
+      "image": "${IMAGE}",
       "essential": true,
       "memoryReservation": "256",
       "logConfiguration": {
@@ -14,7 +15,67 @@
           "awslogs-region": "eu-west-2",
           "awslogs-stream-prefix": "/aws/ecs"
         }
-      }
+      },
+      "environment": [
+        {
+          "name": "AWS_REGION",
+          "value": "${AWS_REGION}"
+        },
+        {
+          "name": "CRON_SCHEDULE_MINS",
+          "value": "${CRON_SCHEDULE_MINS}"
+        },
+        {
+          "name": "DB_HOST",
+          "value": "${DB_HOST}"
+        },
+        {
+          "name": "DB_NAME",
+          "value": "${DB_NAME}"
+        },
+        {
+          "name": "DB_PORT",
+          "value": "${DB_PORT}"
+        },
+        {
+          "name": "DB_IDLE_TIMEOUT_MS",
+          "value": "${DB_IDLE_TIMEOUT_MS}"
+        },
+        {
+          "name": "DB_MAX_CONNECTIONS",
+          "value": "${DB_MAX_CONNECTIONS}"
+        },
+        {
+          "name": "DB_USERNAME",
+          "value": "${DB_USERNAME}"
+        },
+        {
+          "name": "RABBIT_MQ_CONNECTION_STRING",
+          "value": "${RABBIT_MQ_CONNECTION_STRING}"
+        },
+        {
+          "name": "REDIS_HOST",
+          "value": "${REDIS_HOST}"
+        },
+        {
+          "name": "REDIS_PORT",
+          "value": "${REDIS_PORT}"
+        },
+        {
+          "name": "WS_IDLE_TIMEOUT_MS",
+          "value": "${WS_IDLE_TIMEOUT_MS}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "${DB_PASSWORD_ARN}"
+        },
+        {
+          "name": "RDS_ROOT_CERTIFICATE",
+          "valueFrom": "${RDS_ROOT_CERTIFICATE_ARN}"
+        }
+      ]
     }
   ]
 }

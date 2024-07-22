@@ -18,7 +18,8 @@ jobs:
     environment:
       name: development
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -28,13 +29,13 @@ jobs:
           audience: sts.amazonaws.com
           role-to-assume: ${{ vars.AWS_CI_DEPLOYER_ROLE_ARN }}
 
-      - uses: aws-actions/amazon-ecr-login@v2
-        id: login-ecr
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Run aws/push-ecr
-        id: build-image
+      - name: Build, tag, and push image to Amazon ECR
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
@@ -44,31 +45,88 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - uses: aws-actions/amazon-ecs-render-task-definition@v1
-        id: task-def
-        with:
-          task-definition: ./ecs/${{vars.STAGE}}/task-definition.json
-          container-name: ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{ vars.STAGE }}
-          image: ${{ steps.build-image.outputs.image }}
-          environment-variables: |
-            AWS_REGION=${{vars.AWS_REGION}}
-            CRON_SCHEDULE_MINS=${{ vars.CRON_SCHEDULE_MINS }}
-            DB_HOST=${{ vars.DB_HOST }}
-            DB_NAME=${{ vars.DB_NAME }}
-            DB_PORT=${{ vars.DB_PORT }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_IDLE_TIMEOUT_MS=${{ vars.DB_IDLE_TIMEOUT_MS }}
-            DB_MAX_CONNECTIONS=${{ vars.DB_MAX_CONNECTIONS }}
-            DB_USERNAME=${{ vars.DB_USERNAME }}
-            RABBIT_MQ_CONNECTION_STRING=${{ vars.RABBIT_MQ_CONNECTION_STRING }}
-            REDIS_HOST=${{ vars.REDIS_HOST }}
-            REDIS_PORT=${{ vars.REDIS_PORT }}
-            WS_IDLE_TIMEOUT_MS=${{ vars.WS_IDLE_TIMEOUT_MS }}
+      - name: Render task definition with environment variables and secrets
+        env:
+          IMAGE: ${{ steps.build-image.outputs.image }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          CRON_SCHEDULE_MINS: ${{ vars.CRON_SCHEDULE_MINS }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_IDLE_TIMEOUT_MS: ${{ vars.DB_IDLE_TIMEOUT_MS }}
+          DB_MAX_CONNECTIONS: ${{ vars.DB_MAX_CONNECTIONS }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          RABBIT_MQ_CONNECTION_STRING: ${{ vars.RABBIT_MQ_CONNECTION_STRING }}
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          WS_IDLE_TIMEOUT_MS: ${{ vars.WS_IDLE_TIMEOUT_MS }}
+          DB_PASSWORD_ARN: ${{ secrets.DB_PASSWORD_ARN }}
+          RDS_ROOT_CERTIFICATE_ARN: ${{ secrets.RDS_ROOT_CERTIFICATE_ARN }}
+        run: |
+          envsubst < ecs/${{vars.STAGE}}/task-definition.json > ecs-task-definition.json
 
-      - uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{vars.STAGE}}-ecs-service-ECSService-nRbrd4FYxrs8
-          cluster: ${{env.APP_NAME}}-${{ env.CLUSTER_NAME }}-${{vars.STAGE}}-ecs-cluster-ECSCluster-g8M6HWc0Cdph
-          wait-for-service-stability: false
-          force-new-deployment: true
+      - name: Register ECS task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://ecs-task-definition.json \
+            --region ${{ vars.AWS_REGION }}
+
+      - name: Deploy Amazon ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{env.APP_NAME}}-${{ env.CLUSTER_NAME }}-${{vars.STAGE}}-ecs-cluster-ECSCluster-g8M6HWc0Cdph \
+            --service ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{vars.STAGE}}-ecs-service-ECSService-nRbrd4FYxrs8 \
+            --force-new-deployment \
+            --region ${{ vars.AWS_REGION }}
+
+      # - uses: aws-actions/configure-aws-credentials@v3
+      #   with:
+      #     aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ vars.AWS_REGION }}
+      #     audience: sts.amazonaws.com
+      #     role-to-assume: ${{ vars.AWS_CI_DEPLOYER_ROLE_ARN }}
+
+      # - uses: aws-actions/amazon-ecr-login@v2
+      #   id: login-ecr
+
+      # - name: Run aws/push-ecr
+      #   id: build-image
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
+      #     IMAGE_TAG: ${{ github.sha }}
+      #   run: |
+      #     npm ci
+      #     npm run build
+      #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # - uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   id: task-def
+      #   with:
+      #     task-definition: ./ecs/${{vars.STAGE}}/task-definition.json
+      #     container-name: ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{ vars.STAGE }}
+      #     image: ${{ steps.build-image.outputs.image }}
+      #     environment-variables: |
+      #       AWS_REGION=${{vars.AWS_REGION}}
+      #       CRON_SCHEDULE_MINS=${{ vars.CRON_SCHEDULE_MINS }}
+      #       DB_HOST=${{ vars.DB_HOST }}
+      #       DB_NAME=${{ vars.DB_NAME }}
+      #       DB_PORT=${{ vars.DB_PORT }}
+      #       DB_IDLE_TIMEOUT_MS=${{ vars.DB_IDLE_TIMEOUT_MS }}
+      #       DB_MAX_CONNECTIONS=${{ vars.DB_MAX_CONNECTIONS }}
+      #       DB_USERNAME=${{ vars.DB_USERNAME }}
+      #       RABBIT_MQ_CONNECTION_STRING=${{ vars.RABBIT_MQ_CONNECTION_STRING }}
+      #       REDIS_HOST=${{ vars.REDIS_HOST }}
+      #       REDIS_PORT=${{ vars.REDIS_PORT }}
+      #       WS_IDLE_TIMEOUT_MS=${{ vars.WS_IDLE_TIMEOUT_MS }}
+
+      # - uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+      #     service: ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{vars.STAGE}}-ecs-service-ECSService-nRbrd4FYxrs8
+      #     cluster: ${{env.APP_NAME}}-${{ env.CLUSTER_NAME }}-${{vars.STAGE}}-ecs-cluster-ECSCluster-g8M6HWc0Cdph
+      #     wait-for-service-stability: false
+      #     force-new-deployment: true
