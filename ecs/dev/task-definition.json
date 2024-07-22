@@ -1,6 +1,7 @@
 {
   "family": "relaybox-session-dev",
   "taskRoleArn": "arn:aws:iam::767397814726:role/relaybox-dev-ecs-roles-ECSTaskRole-ODOaUvU1yjQJ",
+  "executionRoleArn": "arn:aws:iam::767397814726:role/relaybox-dev-ecs-roles-ECSTaskExecutionRole-rnz8nPpR6cwm",
   "containerDefinitions": [
     {
       "name": "relaybox-session-dev",
