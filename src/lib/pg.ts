@@ -3,8 +3,6 @@ import { getLogger } from '../util/logger.util';
 
 const logger = getLogger(`pg-pool`);
 
-// Force 2
-
 let pgPool: Pool;
 
 export function getPgPool(): Pool {
@@ -24,7 +22,7 @@ export function getPgPool(): Pool {
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
     ssl: {
-      rejectUnauthorized: false,
+      rejectUnauthorized: true,
       ca: process.env.RDS_ROOT_CERTIFICATE
     }
   });
