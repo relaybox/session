@@ -3,6 +3,8 @@ import { getLogger } from '../util/logger.util';
 
 const logger = getLogger(`pg-pool`);
 
+// Force
+
 let pgPool: Pool;
 
 export function getPgPool(): Pool {
