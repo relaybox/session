@@ -5,8 +5,6 @@ const logger = getLogger(`pg-pool`);
 
 const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
 
-console.log('PSW:', process.env.DB_PASSWORD?.slice(0, 4));
-
 let pgPool: Pool;
 
 export function getPgPool(): Pool {
@@ -26,7 +24,6 @@ export function getPgPool(): Pool {
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
     ssl: {
-      rejectUnauthorized: true,
       ca: RDS_ROOT_CERTIFICATE
     }
   });
