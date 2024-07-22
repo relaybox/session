@@ -5,7 +5,7 @@ const logger = getLogger(`pg-pool`);
 
 const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
 
-console.log('ROOT CRET:', RDS_ROOT_CERTIFICATE.slice(0, 30));
+console.log('PSW:', process.env.DB_PASSWORD?.slice(0, 4));
 
 let pgPool: Pool;
 
