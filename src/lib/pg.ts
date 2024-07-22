@@ -20,7 +20,10 @@ export function getPgPool(): Pool {
     password: process.env.DB_PASSWORD,
     max: Number(process.env.DB_MAX_CONNECTIONS),
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
-    connectionTimeoutMillis: 2000
+    connectionTimeoutMillis: 2000,
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
 
   return pgPool;
