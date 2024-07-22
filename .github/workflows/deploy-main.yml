@@ -60,8 +60,8 @@ jobs:
           REDIS_HOST: ${{ vars.REDIS_HOST }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           WS_IDLE_TIMEOUT_MS: ${{ vars.WS_IDLE_TIMEOUT_MS }}
-          DB_PASSWORD_ARN: ${{ secrets.DB_PASSWORD_ARN }}
-          RDS_ROOT_CERTIFICATE_ARN: ${{ secrets.RDS_ROOT_CERTIFICATE_ARN }}
+          DB_PASSWORD_ARN: ${{ vars.DB_PASSWORD_ARN }}
+          RDS_ROOT_CERTIFICATE_ARN: ${{ vars.RDS_ROOT_CERTIFICATE_ARN }}
         run: |
           envsubst < ecs/${{vars.STAGE}}/task-definition.json > ecs-task-definition.json
 
