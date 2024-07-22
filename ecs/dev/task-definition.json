@@ -6,7 +6,7 @@
       "name": "relaybox-session-dev",
       "image": "${IMAGE}",
       "essential": true,
-      "memoryReservation": "256",
+      "memoryReservation": 256,
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
