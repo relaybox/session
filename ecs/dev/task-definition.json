@@ -6,13 +6,6 @@
       "name": "relaybox-session-dev",
       "essential": true,
       "memoryReservation": "256",
-      "portMappings": [
-        {
-          "containerPort": 5000,
-          "hostPort": 0,
-          "protocol": "tcp"
-        }
-      ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
