@@ -38,4 +38,12 @@ export async function startWorker() {
   worker.on('failed', (job: Job<any, void, string> | undefined, err: Error, prev: string) => {
     logger.error(`Failed to process job ${job?.id}`, { err });
   });
+
+  worker.on('ready', () => {
+    logger.info(`Session worker ready`);
+  });
+
+  worker.on('active', () => {
+    logger.info(`Session worker active`);
+  });
 }
