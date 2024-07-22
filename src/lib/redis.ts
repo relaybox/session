@@ -35,9 +35,30 @@ export function createClient({ host, port }: RedisOptions): RedisClient {
     }
   });
 
+  redisClient.on('connect', () => {
+    logger.info('Redis connected');
+  });
+
   redisClient.on('error', (err) => {
-    logger.error(`Redis connection error`, { host, port, err });
+    logger.error(`Redis connection error`, { err });
+  });
+
+  redisClient.on('ready', () => {
+    logger.info('Redis client is ready');
+  });
+
+  redisClient.on('end', () => {
+    logger.info('Redis client disconnected');
   });
 
   return redisClient;
 }
+
+process.on('SIGINT', async () => {
+  if (redisClient) {
+    await redisClient.quit();
+    logger.info('Redis client disconnected through app termination');
+  }
+
+  process.exit(0);
+});
