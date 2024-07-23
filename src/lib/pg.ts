@@ -35,7 +35,7 @@ export function getPgPool(): Pool {
 process.on('SIGINT', async () => {
   if (pgPool) {
     await pgPool.end();
-    logger.info('PG pool ended through app termination');
+    logger.info('PG pool ended through app termination, exiting...');
   }
 
   process.exit(0);
