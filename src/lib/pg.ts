@@ -26,8 +26,8 @@ export function getPgPool(): Pool {
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
     ssl: {
-      rejectUnauthorized: true,
-      ca: RDS_ROOT_CERTIFICATE
+      rejectUnauthorized: true
+      // ca: RDS_ROOT_CERTIFICATE
     }
   });
 
