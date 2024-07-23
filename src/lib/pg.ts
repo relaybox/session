@@ -24,12 +24,10 @@ export function getPgPool(): Pool {
     max: Number(process.env.DB_MAX_CONNECTIONS),
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
-    ...(!DB_PROXY_ENABLED && {
-      ssl: {
-        rejectUnauthorized: true,
-        ca: RDS_ROOT_CERTIFICATE
-      }
-    })
+    ssl: {
+      rejectUnauthorized: true,
+      ...(!DB_PROXY_ENABLED && { ca: RDS_ROOT_CERTIFICATE })
+    }
   });
 
   return pgPool;
