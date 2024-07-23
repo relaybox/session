@@ -5,6 +5,8 @@ const logger = getLogger(`pg-pool`);
 
 const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
 
+console.log('CERT', RDS_ROOT_CERTIFICATE.slice(0, 100));
+
 let pgPool: Pool;
 
 export function getPgPool(): Pool {
