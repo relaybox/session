@@ -56,6 +56,7 @@ jobs:
           DB_PORT: ${{ vars.DB_PORT }}
           DB_IDLE_TIMEOUT_MS: ${{ vars.DB_IDLE_TIMEOUT_MS }}
           DB_MAX_CONNECTIONS: ${{ vars.DB_MAX_CONNECTIONS }}
+          DB_PROXY_ENABLED: ${{ vars.DB_PROXY_ENABLED }}
           DB_USERNAME: ${{ vars.DB_USERNAME }}
           RABBIT_MQ_CONNECTION_STRING: ${{ vars.RABBIT_MQ_CONNECTION_STRING }}
           REDIS_HOST: ${{ vars.REDIS_HOST }}

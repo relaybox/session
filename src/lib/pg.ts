@@ -4,8 +4,7 @@ import { getLogger } from '../util/logger.util';
 const logger = getLogger(`pg-pool`);
 
 const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
-
-console.log('CERT', RDS_ROOT_CERTIFICATE.slice(0, 100));
+const DB_PROXY_ENABLED = process.env.DB_PROXY_ENABLED === 'true';
 
 let pgPool: Pool;
 
@@ -16,6 +15,23 @@ export function getPgPool(): Pool {
 
   logger.info('Creating pg pool', { host: process.env.DB_HOST, name: process.env.DB_NAME });
 
+  console.log({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    user: process.env.DB_USERNAME,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    max: Number(process.env.DB_MAX_CONNECTIONS),
+    idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
+    connectionTimeoutMillis: 2000,
+    ...(!DB_PROXY_ENABLED && {
+      ssl: {
+        rejectUnauthorized: true,
+        ca: RDS_ROOT_CERTIFICATE
+      }
+    })
+  });
+
   pgPool = new Pool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
@@ -25,10 +41,12 @@ export function getPgPool(): Pool {
     max: Number(process.env.DB_MAX_CONNECTIONS),
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS),
     connectionTimeoutMillis: 2000,
-    ssl: {
-      rejectUnauthorized: true
-      // ca: RDS_ROOT_CERTIFICATE
-    }
+    ...(!DB_PROXY_ENABLED && {
+      ssl: {
+        rejectUnauthorized: true,
+        ca: RDS_ROOT_CERTIFICATE
+      }
+    })
   });
 
   return pgPool;
