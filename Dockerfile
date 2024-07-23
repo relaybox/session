@@ -9,4 +9,4 @@ WORKDIR /src
 
 RUN npm i --verbose
 
-CMD ["node", "http.js"]
+CMD ["node", "index.js"]

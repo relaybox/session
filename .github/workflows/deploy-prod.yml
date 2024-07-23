@@ -48,41 +48,41 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # - name: Render task definition with environment variables and secrets
-      #   env:
-      #     IMAGE: ${{ steps.build-image.outputs.image }}
-      #     AWS_REGION: ${{ vars.AWS_REGION }}
-      #     CRON_SCHEDULE_MINS: ${{ vars.CRON_SCHEDULE_MINS }}
-      #     DB_HOST: ${{ vars.DB_HOST }}
-      #     DB_NAME: ${{ vars.DB_NAME }}
-      #     DB_PORT: ${{ vars.DB_PORT }}
-      #     DB_IDLE_TIMEOUT_MS: ${{ vars.DB_IDLE_TIMEOUT_MS }}
-      #     DB_MAX_CONNECTIONS: ${{ vars.DB_MAX_CONNECTIONS }}
-      #     DB_USERNAME: ${{ vars.DB_USERNAME }}
-      #     RABBIT_MQ_CONNECTION_STRING: ${{ vars.RABBIT_MQ_CONNECTION_STRING }}
-      #     REDIS_HOST: ${{ vars.REDIS_HOST }}
-      #     REDIS_PORT: ${{ vars.REDIS_PORT }}
-      #     WS_IDLE_TIMEOUT_MS: ${{ vars.WS_IDLE_TIMEOUT_MS }}
-      #     DB_PASSWORD_ARN: ${{ vars.DB_PASSWORD_ARN }}
-      #     RDS_ROOT_CERTIFICATE_ARN: ${{ vars.RDS_ROOT_CERTIFICATE_ARN }}
-      #   run: |
-      #     envsubst < ecs/${{vars.STAGE}}/task-definition.json > ecs-task-definition.json
+      - name: Render task definition with environment variables and secrets
+        env:
+          IMAGE: ${{ steps.build-image.outputs.image }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          CRON_SCHEDULE_MINS: ${{ vars.CRON_SCHEDULE_MINS }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_IDLE_TIMEOUT_MS: ${{ vars.DB_IDLE_TIMEOUT_MS }}
+          DB_MAX_CONNECTIONS: ${{ vars.DB_MAX_CONNECTIONS }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          RABBIT_MQ_CONNECTION_STRING: ${{ vars.RABBIT_MQ_CONNECTION_STRING }}
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          WS_IDLE_TIMEOUT_MS: ${{ vars.WS_IDLE_TIMEOUT_MS }}
+          DB_PASSWORD_ARN: ${{ vars.DB_PASSWORD_ARN }}
+          RDS_ROOT_CERTIFICATE_ARN: ${{ vars.RDS_ROOT_CERTIFICATE_ARN }}
+        run: |
+          envsubst < ecs/${{vars.STAGE}}/task-definition.json > ecs-task-definition.json
 
-      # - name: Register ECS task definition
-      #   id: register-task
-      #   run: |
-      #     TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
-      #       --cli-input-json file://ecs-task-definition.json \
-      #       --region ${{ vars.AWS_REGION }} \
-      #       --query 'taskDefinition.taskDefinitionArn' \
-      #       --output text)
-      #     echo "task-definition-arn=$TASK_DEFINITION_ARN" >> $GITHUB_OUTPUT
+      - name: Register ECS task definition
+        id: register-task
+        run: |
+          TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://ecs-task-definition.json \
+            --region ${{ vars.AWS_REGION }} \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task-definition-arn=$TASK_DEFINITION_ARN" >> $GITHUB_OUTPUT
 
-      # - name: Deploy Amazon ECS service
-      #   run: |
-      #     aws ecs update-service \
-      #       --region ${{ vars.AWS_REGION }} \
-      #       --cluster ${{env.APP_NAME}}-${{ env.CLUSTER_NAME }}-${{vars.STAGE}}-ecs-cluster-ECSCluster-9pkS9BJE3t40 \
-      #       --service ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{vars.STAGE}}-ecs-service-ECSService-nRbrd4FYxrs8 \
-      #       --task-definition ${{ steps.register-task.outputs.task-definition-arn }} \
-      #       --force-new-deployment
+      - name: Deploy Amazon ECS service
+        run: |
+          aws ecs update-service \
+            --region ${{ vars.AWS_REGION }} \
+            --cluster ${{env.APP_NAME}}-${{ env.CLUSTER_NAME }}-${{vars.STAGE}}-ecs-cluster-ECSCluster-9pkS9BJE3t40 \
+            --service ${{env.APP_NAME}}-${{ env.SERVICE_NAME }}-${{vars.STAGE}}-ecs-service-ECSService-HcnXKEogkl4w \
+            --task-definition ${{ steps.register-task.outputs.task-definition-arn }} \
+            --force-new-deployment
