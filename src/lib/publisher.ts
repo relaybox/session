@@ -2,9 +2,11 @@ import { Connection, Envelope, PublisherProps } from 'rabbitmq-client';
 import { SessionData } from '../module/types';
 
 const AMQP_CONNECTION_STRING = process.env.RABBIT_MQ_CONNECTION_STRING;
+const AMQP_QUEUE_COUNT = Number(process.env.AMQP_QUEUE_COUNT!);
 const AMQP_EXCHANGE_NAME = 'ds.rooms';
 const AMQP_QUEUE_TYPE = 'topic';
 const AMQP_MAX_RETRY_ATTEMPTS = 2;
+const AMQP_ROUTING_KEY_PREFIX = '$$';
 
 const connection = new Connection(AMQP_CONNECTION_STRING);
 
@@ -29,7 +31,7 @@ export function dispatch(
 ): void {
   const envelope: Envelope = {
     exchange: AMQP_EXCHANGE_NAME,
-    routingKey: getBindingKey(subscription)
+    routingKey: getRoutingKey(nspRoomId)
   };
 
   const message = {
@@ -42,6 +44,22 @@ export function dispatch(
   publisher.send(envelope, message);
 }
 
-function getBindingKey(subscription: string): string {
-  return subscription.replace(/:/g, '.');
+export function getRoutingKey(nspRoomId: string): string {
+  const [appPid, namespace] = nspRoomId.split(':');
+  const hashedNamespace = gethashedNamespace(namespace);
+
+  return `${AMQP_ROUTING_KEY_PREFIX}:${appPid}:${hashedNamespace}`;
+}
+
+export function gethashedNamespace(namespace: string): number {
+  let hash = 0;
+  let chr: number;
+
+  for (let i = 0; i < namespace.length; i++) {
+    chr = namespace.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0;
+  }
+
+  return ((hash % AMQP_QUEUE_COUNT) + AMQP_QUEUE_COUNT) % AMQP_QUEUE_COUNT;
 }
