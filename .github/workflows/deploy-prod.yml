@@ -60,6 +60,7 @@ jobs:
           DB_USERNAME: ${{ vars.DB_USERNAME }}
           DB_TLS_DISABLED: ${{ vars.DB_TLS_DISABLED }}
           RABBIT_MQ_CONNECTION_STRING: ${{ vars.RABBIT_MQ_CONNECTION_STRING }}
+          RABBIT_MQ_QUEUE_COUNT: ${{ vars.RABBIT_MQ_QUEUE_COUNT }}
           REDIS_HOST: ${{ vars.REDIS_HOST }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           WS_IDLE_TIMEOUT_MS: ${{ vars.WS_IDLE_TIMEOUT_MS }}

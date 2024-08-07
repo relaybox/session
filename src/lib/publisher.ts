@@ -2,7 +2,7 @@ import { Connection, Envelope, PublisherProps } from 'rabbitmq-client';
 import { SessionData } from '../module/types';
 
 const AMQP_CONNECTION_STRING = process.env.RABBIT_MQ_CONNECTION_STRING;
-const AMQP_QUEUE_COUNT = Number(process.env.AMQP_QUEUE_COUNT!);
+const AMQP_QUEUE_COUNT = Number(process.env.RABBIT_MQ_QUEUE_COUNT!);
 const AMQP_EXCHANGE_NAME = 'ds.rooms';
 const AMQP_QUEUE_TYPE = 'topic';
 const AMQP_MAX_RETRY_ATTEMPTS = 2;
