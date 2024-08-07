@@ -45,8 +45,8 @@ export function dispatch(
 }
 
 export function getRoutingKey(nspRoomId: string): string {
-  const [appPid, namespace] = nspRoomId.split(':');
-  const hashedNamespace = gethashedNamespace(namespace);
+  const [appPid, roomId] = nspRoomId.split(/:(.+)/);
+  const hashedNamespace = gethashedNamespace(roomId);
 
   return `${AMQP_ROUTING_KEY_PREFIX}:${appPid}:${hashedNamespace}`;
 }
