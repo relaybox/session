@@ -71,6 +71,10 @@
           "value": "${REDIS_PORT}"
         },
         {
+          "name": "REDIS_PASSWORD",
+          "value": "${REDIS_PASSWORD}"
+        },
+        {
           "name": "WS_IDLE_TIMEOUT_MS",
           "value": "${WS_IDLE_TIMEOUT_MS}"
         }
