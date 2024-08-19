@@ -83,6 +83,10 @@
         {
           "name": "RDS_ROOT_CERTIFICATE",
           "valueFrom": "${RDS_ROOT_CERTIFICATE_ARN}"
+        },
+        {
+          "name": "REDIS_AUTH",
+          "valueFrom": "${REDIS_AUTH_ARN}"
         }
       ]
     }

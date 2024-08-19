@@ -14,7 +14,7 @@ const logger = getLogger('redis-client');
 
 const REDIS_HOST = process.env.REDIS_HOST;
 const REDIS_PORT = process.env.REDIS_PORT;
-const REDIS_PASSWORD = process.env.REDIS_PASSWORD || '';
+const REDIS_AUTH = process.env.REDIS_AUTH;
 const REDIS_TLS_DISABLED = process.env.REDIS_TLS_DISABLED === 'true';
 
 export type RedisClient = RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
@@ -33,7 +33,7 @@ export const socketOptions = {
 };
 
 export const connectionOptions: RedisClientOptions = {
-  ...(!REDIS_TLS_DISABLED && { password: REDIS_PASSWORD }),
+  ...(!REDIS_TLS_DISABLED && { password: getRedisAuthToken() }),
   socket: {
     ...socketOptions,
     reconnectStrategy
@@ -42,7 +42,7 @@ export const connectionOptions: RedisClientOptions = {
 
 // IO redis client options (BullMQ)
 const tlsConnectionOptionsIo = {
-  password: REDIS_PASSWORD,
+  password: getRedisAuthToken(),
   tls: tlsConnectionOptions
 };
 
@@ -53,6 +53,15 @@ export const connectionOptionsIo = {
 };
 
 let redisClient: RedisClient;
+
+function getRedisAuthToken(): string {
+  if (!REDIS_AUTH) {
+    logger.warn('Redis auth token not found');
+    return '';
+  }
+
+  return JSON.parse(REDIS_AUTH).authToken;
+}
 
 function reconnectStrategy(retries: number) {
   return Math.min(retries * 50, 1000);

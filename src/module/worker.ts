@@ -6,7 +6,7 @@ import { getPgPool } from '../lib/pg';
 
 const QUEUE_NAME = 'session';
 
-const logger = getLogger('session');
+const logger = getLogger(QUEUE_NAME);
 const pgPool = getPgPool();
 const redisClient = getRedisClient();
 
