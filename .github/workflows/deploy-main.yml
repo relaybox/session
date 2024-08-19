@@ -64,7 +64,7 @@ jobs:
           RABBIT_MQ_QUEUE_COUNT: ${{ vars.RABBIT_MQ_QUEUE_COUNT }}
           REDIS_HOST: ${{ vars.REDIS_HOST }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_AUTH_ARN: ${{ secrets.REDIS_AUTH_ARN }}
+          REDIS_AUTH_ARN: ${{ vars.REDIS_AUTH_ARN }}
           WS_IDLE_TIMEOUT_MS: ${{ vars.WS_IDLE_TIMEOUT_MS }}
           DB_PASSWORD_ARN: ${{ vars.DB_PASSWORD_ARN }}
           RDS_ROOT_CERTIFICATE_ARN: ${{ vars.RDS_ROOT_CERTIFICATE_ARN }}
