@@ -52,6 +52,9 @@ export const connectionOptionsIo = {
   ...(!REDIS_TLS_DISABLED && tlsConnectionOptionsIo)
 };
 
+console.log(connectionOptionsIo);
+console.log(connectionOptions);
+
 let redisClient: RedisClient;
 
 function getRedisAuthToken(): string {
