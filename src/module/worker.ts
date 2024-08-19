@@ -4,10 +4,9 @@ import { JobName, router } from './router';
 import { connectionOptionsIo, getRedisClient } from '../lib/redis';
 import { getPgPool } from '../lib/pg';
 
-const logger = getLogger('session');
-
 const QUEUE_NAME = 'session';
 
+const logger = getLogger('session');
 const pgPool = getPgPool();
 const redisClient = getRedisClient();
 
