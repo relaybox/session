@@ -4,6 +4,8 @@ import { JobName, router } from './router';
 import { connectionOptionsIo, getRedisClient } from '../lib/redis';
 import { getPgPool } from '../lib/pg';
 
+// Force deploy 1.0
+
 const QUEUE_NAME = 'session';
 
 const logger = getLogger(QUEUE_NAME);
