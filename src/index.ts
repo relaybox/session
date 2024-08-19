@@ -6,4 +6,4 @@ import { startSessionCron } from './module/cron';
 startWorker();
 startSessionCron();
 
-// Force deploy 1.0
+// Force deploy 1.5
