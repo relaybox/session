@@ -57,7 +57,7 @@ let redisClient: RedisClient;
 
 function getRedisAuthToken(): string {
   if (!REDIS_AUTH) {
-    logger.warn('Redis auth token not found');
+    logger.warn('Redis auth token for TLS connection not defined');
     return '';
   }
 
