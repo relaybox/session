@@ -101,14 +101,12 @@ process.on('SIGTERM', async () => {
     try {
       await redisClient.quit();
       logger.info('Redis client disconnected through graceful shutdown');
-    } catch (error) {
-      logger.error('Error disconnecting Redis client', { error });
+    } catch (err) {
+      logger.error('Error disconnecting Redis client', { err });
     } finally {
       redisClient = null;
     }
   }
-
-  logger.info('Graceful shutdown completed');
 
   process.exit(0);
 });

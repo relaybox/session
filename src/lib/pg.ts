@@ -7,7 +7,7 @@ const RDS_ROOT_CERTIFICATE = process.env.RDS_ROOT_CERTIFICATE || '';
 const DB_PROXY_ENABLED = process.env.DB_PROXY_ENABLED === 'true';
 const DB_TLS_DISABLED = process.env.DB_TLS_DISABLED === 'true';
 
-let pgPool: Pool;
+let pgPool: Pool | null;
 
 const ssl = {
   rejectUnauthorized: true,
@@ -39,10 +39,18 @@ export function getPgPool(): Pool {
   return pgPool;
 }
 
-process.on('SIGINT', async () => {
+process.on('SIGTERM', async () => {
+  logger.info(`SIGTERM received, starting graceful shutdown`);
+
   if (pgPool) {
-    await pgPool.end();
-    logger.info('PG pool ended through app termination');
+    try {
+      await pgPool.end();
+      logger.info('PG pool ended through graceful shutdown');
+    } catch (err) {
+      logger.error('Error ending PG pool', { err });
+    } finally {
+      pgPool = null;
+    }
   }
 
   process.exit(0);
