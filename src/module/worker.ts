@@ -10,7 +10,7 @@ const logger = getLogger(QUEUE_NAME);
 const pgPool = getPgPool();
 const redisClient = getRedisClient();
 
-let worker: Worker | null;
+let worker: Worker | null = null;
 
 async function initializeConnections(): Promise<void> {
   if (!pgPool) {
