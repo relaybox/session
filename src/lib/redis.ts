@@ -18,7 +18,7 @@ const REDIS_AUTH = process.env.REDIS_AUTH;
 const REDIS_TLS_DISABLED = process.env.REDIS_TLS_DISABLED === 'true';
 const REDIS_AUTH_TOKEN = getRedisAuthToken();
 
-export type RedisClient = RedisClientType<RedisModules, RedisFunctions, RedisScripts> | null;
+export type RedisClient = RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
 
 // Node redis client options
 export const tlsConnectionOptions = {
@@ -53,7 +53,7 @@ export const connectionOptionsIo = {
   ...(!REDIS_TLS_DISABLED && tlsConnectionOptionsIo)
 };
 
-let redisClient: RedisClient;
+let redisClient: RedisClient | null;
 
 function getRedisAuthToken(): string {
   if (!REDIS_AUTH) {
@@ -94,19 +94,14 @@ export function getRedisClient(): RedisClient {
   return redisClient;
 }
 
-process.on('SIGTERM', async () => {
-  logger.info(`SIGTERM received, starting graceful shutdown`);
-
+export async function cleanupRedisClient(): Promise<void> {
   if (redisClient) {
     try {
       await redisClient.quit();
-      logger.info('Redis client disconnected through graceful shutdown');
     } catch (err) {
       logger.error('Error disconnecting Redis client', { err });
     } finally {
       redisClient = null;
     }
   }
-
-  process.exit(0);
-});
+}
