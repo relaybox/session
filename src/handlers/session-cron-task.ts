@@ -23,11 +23,11 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
     const inactivConnectionIds = await getInactiveConnectionIds(logger, redisClient);
 
     if (!inactivConnectionIds?.length) {
-      logger.info(`No inactive connections to process, exiting...`);
+      logger.debug(`No inactive connections to process, exiting...`);
       return;
     }
 
-    logger.info(`${inactivConnectionIds.length} inactive connections found`, {
+    logger.debug(`${inactivConnectionIds.length} inactive connections found`, {
       inactivConnectionIds
     });
 
@@ -71,7 +71,7 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
         await setSessionDisconnected(logger, pgClient, connectionId);
         await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
-        logger.info(`Connection clean up complete`, { connectionId });
+        logger.debug(`Connection clean up complete`, { connectionId });
       }
     }
   } catch (err) {

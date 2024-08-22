@@ -13,6 +13,8 @@ export async function handler(
 ): Promise<void> {
   const { uid, connectionId } = data;
 
+  logger.info(`Processing user inactive event for ${uid}`, { connectionId });
+
   try {
     const rooms = await getCachedRooms(logger, redisClient, connectionId);
 

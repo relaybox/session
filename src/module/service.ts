@@ -25,7 +25,7 @@ export function getCachedRooms(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<string[] | null> {
-  logger.info(`Getting cached rooms`, { connectionId });
+  logger.debug(`Getting cached rooms`, { connectionId });
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeySuffix.ROOMS}`;
 
@@ -37,7 +37,7 @@ export function purgeCachedRooms(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<number> {
-  logger.info(`Purging cached rooms`, { connectionId });
+  logger.debug(`Purging cached rooms`, { connectionId });
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeySuffix.ROOMS}`;
 
@@ -51,7 +51,7 @@ export async function purgeSubscriptions(
   nspRoomId: string,
   keyNamespace: KeyNamespace
 ) {
-  logger.info(`Deleting all ${keyNamespace} subscriptions`, {
+  logger.debug(`Deleting all ${keyNamespace} subscriptions`, {
     connectionId,
     nspRoomId,
     keyNamespace
@@ -79,7 +79,7 @@ export async function removeActiveMember(
   uid: string,
   nspRoomId: string
 ): Promise<void> {
-  logger.info(`Removing active member`, { uid, nspRoomId });
+  logger.debug(`Removing active member`, { uid, nspRoomId });
 
   const keyPrefix = formatKey([KeyPrefix.PRESENCE, nspRoomId]);
 
@@ -100,7 +100,7 @@ export function broadcastSessionDestroy(
   nspRoomId: string,
   sessionData: SessionData
 ): void {
-  logger.info(`Broadcasting session destroy`, { uid, nspRoomId });
+  logger.debug(`Broadcasting session destroy`, { uid, nspRoomId });
 
   const subscription = formatPresenceSubscription(nspRoomId, SubscriptionType.LEAVE);
   const data = { uid, message: 'Session disconnect' };
@@ -118,7 +118,7 @@ export async function setSessionActive(
   redisClient: RedisClient,
   data: SessionData
 ): Promise<void> {
-  logger.info(`Processing set session active`, { data });
+  logger.debug(`Processing set session active`, { data });
 
   const { connectionId } = data;
   const sessionActiveKey = formatKey([KeyPrefix.SESSION, connectionId, KeySuffix.ACTIVE]);
@@ -142,7 +142,7 @@ export function getActiveSession(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<any> {
-  logger.info(`Getting active session for connection id`, { connectionId });
+  logger.debug(`Getting active session for connection id`, { connectionId });
 
   const key = formatKey([KeyPrefix.SESSION, connectionId, KeySuffix.ACTIVE]);
 
@@ -152,7 +152,7 @@ export async function getInactiveConnectionIds(
   logger: Logger,
   redisClient: RedisClient
 ): Promise<string[] | undefined> {
-  logger.info(`Getting inactive sessions by connection id`);
+  logger.debug(`Getting inactive sessions by connection id`);
 
   try {
     const max = new Date().getTime() - ACTIVE_SESSION_HEARTBEAT_SCORE_MAX;
@@ -178,7 +178,7 @@ export async function setSessionHeartbeat(
   redisClient: RedisClient,
   data: SessionData
 ): Promise<void> {
-  logger.info(`Processing set session heartbeat`, { data });
+  logger.debug(`Processing set session heartbeat`, { data });
 
   const { connectionId, timestamp } = data;
 
@@ -198,7 +198,7 @@ export async function unsetSessionHeartbeat(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<void> {
-  logger.info(`Processing unset session heartbeat`, { connectionId });
+  logger.debug(`Processing unset session heartbeat`, { connectionId });
 
   const key = formatKey([KeyPrefix.HEARTBEAT, KeySuffix.KEEP_ALIVE]);
 
@@ -215,7 +215,7 @@ export async function setSessionDisconnected(
   pgClient: PoolClient,
   connectionId: string
 ): Promise<void> {
-  logger.info(`Setting session as disconnected ${connectionId}`, { connectionId });
+  logger.debug(`Setting session as disconnected ${connectionId}`, { connectionId });
 
   try {
     await sessionDb.setSessionDisconnected(pgClient, connectionId);
@@ -231,7 +231,7 @@ export async function saveSessionData(
   appId: string,
   sessionData: SessionData
 ): Promise<void> {
-  logger.info(`Saving session data`, { appId, sessionData });
+  logger.debug(`Saving session data`, { appId, sessionData });
 
   try {
     await sessionDb.saveSessionData(pgClient, appId, sessionData);
@@ -246,7 +246,7 @@ export async function getAppId(
   pgClient: PoolClient,
   appPid: string
 ): Promise<string> {
-  logger.info(`Getting app id for ${appPid}`);
+  logger.debug(`Getting app id for ${appPid}`);
 
   try {
     const { rows: applications } = await sessionDb.getApplicationIdByAppPid(pgClient, appPid);
@@ -263,7 +263,7 @@ export async function getConnectionEventId(
   connectionId: string,
   socketId: string
 ): Promise<string | null> {
-  logger.info(`Getting connection event id for ${connectionId}`, { connectionId, socketId });
+  logger.debug(`Getting connection event id for ${connectionId}`, { connectionId, socketId });
 
   try {
     const { rows } = await sessionDb.getConnectionEventId(pgClient, connectionId, socketId);
@@ -280,7 +280,7 @@ export async function saveSocketConnectionEvent(
   appId: string,
   data: any
 ): Promise<void> {
-  logger.info(`Saving scket connection event`, { appId, data });
+  logger.debug(`Saving scket connection event`, { appId, data });
 
   try {
     await sessionDb.saveConnectionEvent(pgClient, appId, data);

@@ -28,11 +28,11 @@ export async function handler(
     const activeSession = await getActiveSession(logger, redisClient, connectionId);
 
     if (activeSession) {
-      logger.info(`Active session found, maintain session`, { connectionId });
+      logger.debug(`Active session found, maintain session`, { connectionId });
       return;
     }
 
-    logger.info(`No active session found for ${connectionId}, executing destroy`, {
+    logger.debug(`No active session found for ${connectionId}, executing destroy`, {
       uid,
       connectionId
     });
@@ -61,7 +61,7 @@ export async function handler(
     await setSessionDisconnected(logger, pgClient, connectionId);
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
-    logger.info(`Session destroy complete for ${connectionId}`);
+    logger.debug(`Session destroy complete for ${connectionId}`);
   } catch (err) {
     logger.error(`Session data destroy failed`, err);
     throw err;

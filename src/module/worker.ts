@@ -56,7 +56,7 @@ export async function startWorker() {
   });
 
   worker.on('active', () => {
-    logger.info(`Session worker active`);
+    logger.debug(`Session worker active`);
   });
 }
 
