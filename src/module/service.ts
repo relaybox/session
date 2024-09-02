@@ -1,6 +1,13 @@
 import { Logger } from 'winston';
 import * as sessionRepository from './repository';
-import { KeyNamespace, KeyPrefix, KeySuffix, SessionData, SubscriptionType } from './types';
+import {
+  AuthUser,
+  KeyNamespace,
+  KeyPrefix,
+  KeySuffix,
+  SessionData,
+  SubscriptionType
+} from './types';
 import { RedisClient } from '../lib/redis';
 import { dispatch } from '../lib/publisher';
 import { PoolClient } from 'pg';
@@ -286,6 +293,54 @@ export async function saveSocketConnectionEvent(
     await sessionDb.saveConnectionEvent(pgClient, appId, data);
   } catch (err: any) {
     logger.error(`Failed to process connect event`, { err });
+    throw err;
+  }
+}
+
+export async function setAuthUserOffline(
+  logger: Logger,
+  pgClient: PoolClient,
+  uid: string
+): Promise<void> {
+  logger.debug(`Setting auth user offline`, { uid });
+
+  try {
+    await sessionDb.setAuthUserOffline(pgClient, uid);
+  } catch (err: any) {
+    logger.error(`Failed to set auth user offline`, { err });
+    throw err;
+  }
+}
+
+export async function setAuthUserOnline(
+  logger: Logger,
+  pgClient: PoolClient,
+  uid: string
+): Promise<void> {
+  logger.debug(`Setting auth user online`, { uid });
+
+  try {
+    await sessionDb.setAuthUserOnline(pgClient, uid);
+  } catch (err: any) {
+    logger.error(`Failed to set auth user online`, { err });
+    throw err;
+  }
+}
+
+export async function addAuthUser(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  user: AuthUser
+): Promise<void> {
+  logger.debug(`Adding auth user`, { user });
+
+  try {
+    const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
+
+    await sessionRepository.addAuthUser(redisClient, key, user);
+  } catch (err: any) {
+    logger.error(`Failed to add auth user`, { err });
     throw err;
   }
 }

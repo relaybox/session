@@ -5,7 +5,8 @@ export enum KeyPrefix {
   METRICS = 'metrics',
   SESSION = 'session',
   CONNECTION = 'connection',
-  HEARTBEAT = 'heartbeat'
+  HEARTBEAT = 'heartbeat',
+  AUTH = 'auth'
 }
 
 export enum KeyNamespace {
@@ -32,6 +33,14 @@ export enum SubscriptionType {
   UPDATE = 'update'
 }
 
+export interface AuthUser {
+  id: string;
+  clientId: string;
+  createdAt: string;
+  updatedAt: string;
+  username: string;
+}
+
 export interface SessionData {
   uid: string;
   appPid: string;
@@ -43,6 +52,7 @@ export interface SessionData {
   anonymous: boolean;
   socketId: string;
   connectionId: string;
+  user?: AuthUser;
 }
 
 export const DS_PERMISSIONS_WILDCARD = '*';

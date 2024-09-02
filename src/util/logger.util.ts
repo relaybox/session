@@ -50,6 +50,7 @@ const flatPrint = new winston.transports.Console({
 });
 
 const transports = process.env.LOCALHOST === 'true' ? [easyPrint] : [flatPrint];
+// const transports = process.env.LOCALHOST === 'true' ? [prettyPrint] : [flatPrint];
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || LogLevel.INFO,

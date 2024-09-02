@@ -98,3 +98,27 @@ export function getConnectionEventId(
 
   return pgClient.query(query, [connectionId, socketId]);
 }
+
+export async function setAuthUserOffline(pgClient: PoolClient, uid: string): Promise<QueryResult> {
+  const now = new Date().toISOString();
+
+  const query = `
+    UPDATE authentication_users 
+    SET "isOnline" = false, "lastOnline" = $1 
+    WHERE "id" = $2;  
+  `;
+
+  return pgClient.query(query, [now, uid]);
+}
+
+export function setAuthUserOnline(pgClient: PoolClient, uid: string): Promise<QueryResult> {
+  const now = new Date().toISOString();
+
+  const query = `
+    UPDATE authentication_users 
+    SET "isOnline" = true, "lastOnline" = $1 
+    WHERE "id" = $2;  
+  `;
+
+  return pgClient.query(query, [now, uid]);
+}

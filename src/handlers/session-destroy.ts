@@ -6,6 +6,7 @@ import {
   getCachedRooms,
   purgeCachedRooms,
   purgeSubscriptions,
+  setAuthUserOffline,
   setSessionDisconnected,
   unsetSessionHeartbeat
 } from '../module/service';
@@ -18,7 +19,7 @@ export async function handler(
   redisClient: RedisClient,
   data: SessionData & Partial<SocketConnectionEvent>
 ): Promise<void> {
-  const { uid, connectionId } = data;
+  const { uid, connectionId, user } = data;
 
   logger.info(`Preparing to destroy session data for (${connectionId})`, { uid, connectionId });
 
@@ -60,6 +61,10 @@ export async function handler(
 
     await setSessionDisconnected(logger, pgClient, connectionId);
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
+
+    if (user) {
+      await setAuthUserOffline(logger, pgClient, user.id);
+    }
 
     logger.debug(`Session destroy complete for ${connectionId}`);
   } catch (err) {

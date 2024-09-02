@@ -1,4 +1,5 @@
 import { RedisClient } from '../lib/redis';
+import { AuthUser } from './types';
 
 export async function getCachedRooms(
   redisClient: RedisClient,
@@ -99,4 +100,12 @@ export function getInactiveConnectionIds(
       count
     }
   });
+}
+
+export async function addAuthUser(
+  redisClient: RedisClient,
+  key: string,
+  user: AuthUser
+): Promise<number> {
+  return redisClient.hSet(key, user.clientId, JSON.stringify(user));
 }

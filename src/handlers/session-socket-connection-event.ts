@@ -2,10 +2,12 @@ import { Pool } from 'pg';
 import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
+  addAuthUser,
   getAppId,
   getConnectionEventId,
   saveSessionData,
-  saveSocketConnectionEvent
+  saveSocketConnectionEvent,
+  setAuthUserOnline
 } from '../module/service';
 import { SessionData, SocketConnectionEvent, SocketConnectionEventType } from '../module/types';
 
@@ -18,7 +20,7 @@ export async function handler(
 ): Promise<void> {
   const pgClient = await pgPool.connect();
 
-  const { appPid, connectionId, socketId, connectionEventType } = data;
+  const { appPid, connectionId, socketId, connectionEventType, user } = data;
 
   logger.info(`Processing connection event of type ${connectionEventType} for ${connectionId}`, {
     connectionEventType,
@@ -41,6 +43,11 @@ export async function handler(
       if (!socketConnectionEventId) {
         return;
       }
+    }
+
+    if (connectionEventType === SocketConnectionEventType.CONNECT && user) {
+      await setAuthUserOnline(logger, pgClient, user.id);
+      await addAuthUser(logger, redisClient, appPid, user);
     }
 
     await saveSocketConnectionEvent(logger, pgClient, appId, data);
