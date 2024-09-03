@@ -3,6 +3,7 @@ import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
   getActiveSession,
+  getAuthUser,
   getCachedRooms,
   purgeCachedRooms,
   purgeSubscriptions,
@@ -19,7 +20,7 @@ export async function handler(
   redisClient: RedisClient,
   data: SessionData & Partial<SocketConnectionEvent>
 ): Promise<void> {
-  const { uid, connectionId, user } = data;
+  const { uid, connectionId, user, appPid } = data;
 
   logger.info(`Preparing to destroy session data for (${connectionId})`, { uid, connectionId });
 
@@ -63,10 +64,15 @@ export async function handler(
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
     if (user) {
-      await setAuthUserOffline(logger, pgClient, user.id);
+      const userIsOnline = await getAuthUser(logger, redisClient, appPid, user);
+
+      if (!userIsOnline) {
+        logger.debug(`User is not online, setting offline`, { uid, connectionId });
+        await setAuthUserOffline(logger, pgClient, user.id);
+      }
     }
 
-    logger.debug(`Session destroy complete for ${connectionId}`);
+    logger.info(`Session destroy complete for ${connectionId}`, { uid, connectionId });
   } catch (err) {
     logger.error(`Session data destroy failed`, err);
     throw err;

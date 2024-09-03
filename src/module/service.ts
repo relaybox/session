@@ -344,3 +344,41 @@ export async function addAuthUser(
     throw err;
   }
 }
+
+export async function getAuthUser(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  user: AuthUser
+): Promise<AuthUser | null> {
+  logger.debug(`Getting auth user`, { user });
+
+  try {
+    const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
+
+    const authUser = await sessionRepository.getAuthUser(redisClient, key, user);
+
+    return authUser ? JSON.parse(authUser) : null;
+  } catch (err: any) {
+    logger.error(`Failed to add auth user`, { err });
+    throw err;
+  }
+}
+
+export async function deleteAuthUser(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  user: AuthUser
+): Promise<void> {
+  logger.debug(`Deleting auth user`, { user });
+
+  try {
+    const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
+
+    await sessionRepository.deleteAuthUser(redisClient, key, user);
+  } catch (err: any) {
+    logger.error(`Failed to add auth user`, { err });
+    throw err;
+  }
+}

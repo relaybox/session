@@ -109,3 +109,19 @@ export async function addAuthUser(
 ): Promise<number> {
   return redisClient.hSet(key, user.clientId, JSON.stringify(user));
 }
+
+export async function getAuthUser(
+  redisClient: RedisClient,
+  key: string,
+  user: AuthUser
+): Promise<string | undefined> {
+  return redisClient.hGet(key, user.clientId);
+}
+
+export async function deleteAuthUser(
+  redisClient: RedisClient,
+  key: string,
+  user: AuthUser
+): Promise<number> {
+  return redisClient.hDel(key, user.clientId);
+}

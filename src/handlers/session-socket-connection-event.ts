@@ -3,6 +3,7 @@ import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
   addAuthUser,
+  deleteAuthUser,
   getAppId,
   getConnectionEventId,
   saveSessionData,
@@ -42,6 +43,10 @@ export async function handler(
 
       if (!socketConnectionEventId) {
         return;
+      }
+
+      if (user) {
+        await deleteAuthUser(logger, redisClient, appPid, user);
       }
     }
 
