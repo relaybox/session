@@ -64,6 +64,8 @@ export async function handler(
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
     if (user) {
+      logger.debug(`Auth user attached to session, checking if online`, { uid, connectionId });
+
       const userIsOnline = await getAuthUser(logger, redisClient, appPid, user);
 
       if (!userIsOnline) {
@@ -74,7 +76,7 @@ export async function handler(
 
     logger.info(`Session destroy complete for ${connectionId}`, { uid, connectionId });
   } catch (err) {
-    logger.error(`Session data destroy failed`, err);
+    logger.error(`Session data destroy failed`, { err, uid, connectionId });
     throw err;
   } finally {
     pgClient.release();
