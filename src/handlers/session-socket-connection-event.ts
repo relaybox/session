@@ -3,9 +3,8 @@ import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
   addAuthUser,
-  broadcastConnectEvent,
-  broadcastDisconnectEvent,
-  broadcastUserEvent,
+  broadcastAuthUserConnectEvent,
+  broadcastAuthUserDisconnectEvent,
   deleteAuthUser,
   getAppId,
   getConnectionEventId,
@@ -13,12 +12,7 @@ import {
   saveSocketConnectionEvent,
   setAuthUserOnline
 } from '../module/service';
-import {
-  AuthUserEvent,
-  SessionData,
-  SocketConnectionEvent,
-  SocketConnectionEventType
-} from '../module/types';
+import { SessionData, SocketConnectionEvent, SocketConnectionEventType } from '../module/types';
 
 const logger = getLogger('session-socket-connection-event');
 
@@ -55,14 +49,14 @@ export async function handler(
 
       if (user) {
         await deleteAuthUser(logger, redisClient, appPid, user);
-        broadcastDisconnectEvent(logger, user, data);
+        broadcastAuthUserDisconnectEvent(logger, user, data);
       }
     }
 
     if (connectionEventType === SocketConnectionEventType.CONNECT && user) {
       await setAuthUserOnline(logger, pgClient, user.id);
       await addAuthUser(logger, redisClient, appPid, user);
-      broadcastConnectEvent(logger, user, data);
+      broadcastAuthUserConnectEvent(logger, user, data);
     }
 
     await saveSocketConnectionEvent(logger, pgClient, appId, data);

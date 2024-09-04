@@ -462,7 +462,7 @@ export function broadcastUserEvent(
   }
 }
 
-export function broadcastConnectEvent(
+export function broadcastAuthUserConnectEvent(
   logger: Logger,
   user: AuthUser,
   sessionData: SessionData
@@ -478,7 +478,7 @@ export function broadcastConnectEvent(
   });
 }
 
-export function broadcastDisconnectEvent(
+export function broadcastAuthUserDisconnectEvent(
   logger: Logger,
   user: AuthUser,
   sessionData: SessionData
@@ -492,4 +492,50 @@ export function broadcastDisconnectEvent(
     isOnline: false,
     lastOnline: new Date().toISOString()
   });
+}
+
+export async function destoryRoomSubscriptions(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<any> {
+  const rooms = await getCachedRooms(logger, redisClient, connectionId);
+
+  if (rooms && rooms.length > 0) {
+    return Promise.all(
+      rooms.map(async (nspRoomId) =>
+        Promise.all([
+          purgeCachedRooms(logger, redisClient, connectionId),
+          purgeSubscriptions(
+            logger,
+            redisClient,
+            connectionId,
+            nspRoomId,
+            KeyNamespace.SUBSCRIPTIONS
+          ),
+          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.PRESENCE),
+          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS)
+        ])
+      )
+    );
+  }
+}
+
+export async function destoryUserSubscriptions(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<any> {
+  const users = await getCachedUsers(logger, redisClient, connectionId);
+
+  if (users && users.length > 0) {
+    return Promise.all(
+      users.map(async (clientId) =>
+        Promise.all([
+          purgeCachedUsers(logger, redisClient, connectionId),
+          purgeUserSubscriptions(logger, redisClient, connectionId, clientId)
+        ])
+      )
+    );
+  }
 }

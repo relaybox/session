@@ -2,7 +2,9 @@ import { Pool } from 'pg';
 import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
-  broadcastDisconnectEvent,
+  broadcastAuthUserDisconnectEvent,
+  destoryRoomSubscriptions,
+  destoryUserSubscriptions,
   getActiveSession,
   getAuthUser,
   getCachedRooms,
@@ -43,40 +45,8 @@ export async function handler(
       connectionId
     });
 
-    const rooms = await getCachedRooms(logger, redisClient, connectionId);
-
-    if (rooms && rooms.length > 0) {
-      await Promise.all(
-        rooms.map(async (nspRoomId) =>
-          Promise.all([
-            purgeCachedRooms(logger, redisClient, connectionId),
-            purgeSubscriptions(
-              logger,
-              redisClient,
-              connectionId,
-              nspRoomId,
-              KeyNamespace.SUBSCRIPTIONS
-            ),
-            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.PRESENCE),
-            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS)
-          ])
-        )
-      );
-    }
-
-    const users = await getCachedUsers(logger, redisClient, connectionId);
-
-    if (users && users.length > 0) {
-      await Promise.all(
-        users.map(async (clientId) =>
-          Promise.all([
-            purgeCachedUsers(logger, redisClient, connectionId),
-            purgeUserSubscriptions(logger, redisClient, connectionId, clientId)
-          ])
-        )
-      );
-    }
-
+    await destoryRoomSubscriptions(logger, redisClient, connectionId);
+    await destoryUserSubscriptions(logger, redisClient, connectionId);
     await setSessionDisconnected(logger, pgClient, connectionId);
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
@@ -88,7 +58,7 @@ export async function handler(
       if (!userIsOnline) {
         logger.debug(`User is not online, setting offline`, { uid, connectionId });
         await setAuthUserOffline(logger, pgClient, user.id);
-        broadcastDisconnectEvent(logger, user, data);
+        broadcastAuthUserDisconnectEvent(logger, user, data);
       }
     }
 
