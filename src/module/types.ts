@@ -45,8 +45,9 @@ export interface AuthUser {
 }
 
 export enum AuthUserEvent {
-  ONLINE = 'online',
-  OFFLINE = 'offline'
+  CONNECTION_STATUS = 'user:connection:status',
+  CONNECT = 'user:connect',
+  DISCONNECT = 'user:disconnect'
 }
 
 export interface SessionData {

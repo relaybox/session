@@ -3,6 +3,8 @@ import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
   addAuthUser,
+  broadcastConnectEvent,
+  broadcastDisconnectEvent,
   broadcastUserEvent,
   deleteAuthUser,
   getAppId,
@@ -53,13 +55,14 @@ export async function handler(
 
       if (user) {
         await deleteAuthUser(logger, redisClient, appPid, user);
+        broadcastDisconnectEvent(logger, user, data);
       }
     }
 
     if (connectionEventType === SocketConnectionEventType.CONNECT && user) {
       await setAuthUserOnline(logger, pgClient, user.id);
       await addAuthUser(logger, redisClient, appPid, user);
-      broadcastUserEvent(logger, appPid, user, AuthUserEvent.ONLINE, data);
+      broadcastConnectEvent(logger, user, data);
     }
 
     await saveSocketConnectionEvent(logger, pgClient, appId, data);

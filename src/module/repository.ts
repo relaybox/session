@@ -9,6 +9,14 @@ export async function getCachedRooms(
   return Object.keys(rooms);
 }
 
+export async function getCachedUsers(
+  redisClient: RedisClient,
+  key: string
+): Promise<string[] | null> {
+  const users = await redisClient.hGetAll(key);
+  return Object.keys(users);
+}
+
 export async function deleteCachedRooms(redisClient: RedisClient, key: string): Promise<number> {
   return redisClient.del(key);
 }
@@ -20,6 +28,10 @@ export async function getAllSubscriptions(
   const subscriptions = await redisClient.hGetAll(key);
 
   return Object.keys(subscriptions);
+}
+
+export async function deleteHash(redisClient: RedisClient, key: string): Promise<number> {
+  return redisClient.del(key);
 }
 
 export function deleteSubscription(

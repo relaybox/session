@@ -2,11 +2,15 @@ import { Pool } from 'pg';
 import { RedisClient } from '../lib/redis';
 import { getLogger } from '../util/logger.util';
 import {
+  broadcastDisconnectEvent,
   getActiveSession,
   getAuthUser,
   getCachedRooms,
+  getCachedUsers,
   purgeCachedRooms,
+  purgeCachedUsers,
   purgeSubscriptions,
+  purgeUserSubscriptions,
   setAuthUserOffline,
   setSessionDisconnected,
   unsetSessionHeartbeat
@@ -60,6 +64,19 @@ export async function handler(
       );
     }
 
+    const users = await getCachedUsers(logger, redisClient, connectionId);
+
+    if (users && users.length > 0) {
+      await Promise.all(
+        users.map(async (clientId) =>
+          Promise.all([
+            purgeCachedUsers(logger, redisClient, connectionId),
+            purgeUserSubscriptions(logger, redisClient, connectionId, clientId)
+          ])
+        )
+      );
+    }
+
     await setSessionDisconnected(logger, pgClient, connectionId);
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
@@ -71,6 +88,7 @@ export async function handler(
       if (!userIsOnline) {
         logger.debug(`User is not online, setting offline`, { uid, connectionId });
         await setAuthUserOffline(logger, pgClient, user.id);
+        broadcastDisconnectEvent(logger, user, data);
       }
     }
 

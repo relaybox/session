@@ -48,6 +48,18 @@ export function getCachedRooms(
   return sessionRepository.getCachedRooms(redisClient, key);
 }
 
+export function getCachedUsers(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<string[] | null> {
+  logger.debug(`Getting cached users`, { connectionId });
+
+  const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeyNamespace.USERS}`;
+
+  return sessionRepository.getCachedUsers(redisClient, key);
+}
+
 export function purgeCachedRooms(
   logger: Logger,
   redisClient: RedisClient,
@@ -66,7 +78,7 @@ export async function purgeSubscriptions(
   connectionId: string,
   nspRoomId: string,
   keyNamespace: KeyNamespace
-) {
+): Promise<void> {
   logger.debug(`Deleting all ${keyNamespace} subscriptions`, {
     connectionId,
     nspRoomId,
@@ -85,6 +97,42 @@ export async function purgeSubscriptions(
     );
   } catch (err) {
     logger.error(`Failed to delete subscriptions`, { connectionId, nspRoomId, keyNamespace, err });
+    throw err;
+  }
+}
+
+export async function purgeUserSubscriptions(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string,
+  clientId: string
+): Promise<void> {
+  logger.debug(`Deleting all user subscriptions`, { clientId });
+
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeyNamespace.USERS, clientId]);
+  console.log('PURGING USERS', key);
+
+  try {
+    await sessionRepository.deleteHash(redisClient, key);
+  } catch (err) {
+    logger.error(`Failed to delete user subscriptions`, { clientId, key, err });
+    throw err;
+  }
+}
+
+export async function purgeCachedUsers(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<void> {
+  logger.debug(`Purging cached users`, { connectionId });
+
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeyNamespace.USERS]);
+
+  try {
+    await sessionRepository.deleteHash(redisClient, key);
+  } catch (err) {
+    logger.error(`Failed to delete users`, { connectionId, key, err });
     throw err;
   }
 }
@@ -394,20 +442,54 @@ export async function deleteAuthUser(
 
 export function broadcastUserEvent(
   logger: Logger,
-  appPid: string,
-  user: AuthUser,
   event: AuthUserEvent,
-  sessionData: SessionData
+  user: AuthUser,
+  sessionData: SessionData,
+  message: any
 ): void {
-  logger.debug(`Broadcasting user event`, { user });
+  logger.debug(`Broadcasting user event`, { event });
 
   const nspClientId = `${KeyNamespace.USERS}:${user.clientId}`;
   const subscription = formatUserSubscription(nspClientId, event);
 
+  console.log(subscription);
+
   try {
-    dispatch(nspClientId, subscription, user, sessionData);
+    dispatch(nspClientId, subscription, message, sessionData);
   } catch (err) {
     logger.error(`Failed to broadcast disconnect`, { nspClientId, err });
     throw err;
   }
+}
+
+export function broadcastConnectEvent(
+  logger: Logger,
+  user: AuthUser,
+  sessionData: SessionData
+): void {
+  broadcastUserEvent(logger, AuthUserEvent.CONNECTION_STATUS, user, sessionData, {
+    isOnline: true,
+    lastOnline: new Date().toISOString()
+  });
+
+  broadcastUserEvent(logger, AuthUserEvent.CONNECT, user, sessionData, {
+    isOnline: true,
+    lastOnline: new Date().toISOString()
+  });
+}
+
+export function broadcastDisconnectEvent(
+  logger: Logger,
+  user: AuthUser,
+  sessionData: SessionData
+): void {
+  broadcastUserEvent(logger, AuthUserEvent.CONNECTION_STATUS, user, sessionData, {
+    isOnline: false,
+    lastOnline: new Date().toISOString()
+  });
+
+  broadcastUserEvent(logger, AuthUserEvent.DISCONNECT, user, sessionData, {
+    isOnline: false,
+    lastOnline: new Date().toISOString()
+  });
 }
