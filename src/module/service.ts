@@ -2,6 +2,7 @@ import { Logger } from 'winston';
 import * as sessionRepository from './repository';
 import {
   AuthUser,
+  AuthUserEvent,
   KeyNamespace,
   KeyPrefix,
   KeySuffix,
@@ -24,7 +25,15 @@ function formatKey(keyParts: string[]): string {
 }
 
 export function formatPresenceSubscription(nspRoomId: string, event: string): string {
-  return `${nspRoomId}:${PLATFORM_RESERVED_NAMESPACE}:presence:${event}`;
+  return `${nspRoomId}:${PLATFORM_RESERVED_NAMESPACE}:${KeyNamespace.PRESENCE}:${event}`;
+}
+
+export function formatUserSubscription(nspClientId: string, event: string): string {
+  return `${nspClientId}:${PLATFORM_RESERVED_NAMESPACE}:${event}`;
+}
+
+export function formatUserSubscriptionAll(nspClientId: string): string {
+  return `${nspClientId}:$:$:subscribe:all`;
 }
 
 export function getCachedRooms(
@@ -379,6 +388,26 @@ export async function deleteAuthUser(
     await sessionRepository.deleteAuthUser(redisClient, key, user);
   } catch (err: any) {
     logger.error(`Failed to add auth user`, { err });
+    throw err;
+  }
+}
+
+export function broadcastUserEvent(
+  logger: Logger,
+  appPid: string,
+  user: AuthUser,
+  event: AuthUserEvent,
+  sessionData: SessionData
+): void {
+  logger.debug(`Broadcasting user event`, { user });
+
+  const nspClientId = `${KeyNamespace.USERS}:${user.clientId}`;
+  const subscription = formatUserSubscription(nspClientId, event);
+
+  try {
+    dispatch(nspClientId, subscription, user, sessionData);
+  } catch (err) {
+    logger.error(`Failed to broadcast disconnect`, { nspClientId, err });
     throw err;
   }
 }

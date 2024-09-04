@@ -12,7 +12,8 @@ export enum KeyPrefix {
 export enum KeyNamespace {
   SUBSCRIPTIONS = 'subscriptions',
   PRESENCE = 'presence',
-  METRICS = 'metrics'
+  METRICS = 'metrics',
+  USERS = 'users'
 }
 
 export enum KeySuffix {
@@ -39,6 +40,13 @@ export interface AuthUser {
   createdAt: string;
   updatedAt: string;
   username: string;
+  isOnline: boolean;
+  lastOnline: string;
+}
+
+export enum AuthUserEvent {
+  ONLINE = 'online',
+  OFFLINE = 'offline'
 }
 
 export interface SessionData {

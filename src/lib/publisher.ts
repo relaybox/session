@@ -7,6 +7,7 @@ const AMQP_EXCHANGE_NAME = 'ds.rooms';
 const AMQP_QUEUE_TYPE = 'topic';
 const AMQP_MAX_RETRY_ATTEMPTS = 2;
 const AMQP_ROUTING_KEY_PREFIX = '$$';
+const SERVICE_NAME = 'session';
 
 const connection = new Connection(AMQP_CONNECTION_STRING);
 
@@ -27,7 +28,7 @@ export function dispatch(
   nspRoomId: string,
   subscription: string,
   data: any,
-  sessionData: SessionData
+  sessionData?: SessionData
 ): void {
   const envelope: Envelope = {
     exchange: AMQP_EXCHANGE_NAME,
@@ -38,7 +39,8 @@ export function dispatch(
     nspRoomId,
     event: subscription,
     data,
-    session: sessionData
+    service: SERVICE_NAME,
+    ...(sessionData && { session: sessionData })
   };
 
   publisher.send(envelope, message);
