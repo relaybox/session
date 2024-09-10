@@ -7,17 +7,11 @@ import {
   destoryUserSubscriptions,
   getActiveSession,
   getAuthUser,
-  getCachedRooms,
-  getCachedUsers,
-  purgeCachedRooms,
-  purgeCachedUsers,
-  purgeSubscriptions,
-  purgeUserSubscriptions,
   setAuthUserOffline,
   setSessionDisconnected,
   unsetSessionHeartbeat
 } from '../module/service';
-import { KeyNamespace, SessionData, SocketConnectionEvent } from '../module/types';
+import { SessionData, SocketConnectionEvent } from '../module/types';
 
 const logger = getLogger('session-destroy');
 
