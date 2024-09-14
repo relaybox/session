@@ -110,7 +110,6 @@ export async function purgeUserSubscriptions(
   logger.debug(`Deleting all user subscriptions`, { clientId });
 
   const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeyNamespace.USERS, clientId]);
-  console.log('PURGING USERS', key);
 
   try {
     await sessionRepository.deleteHash(redisClient, key);
@@ -452,8 +451,6 @@ export function broadcastUserEvent(
   const nspClientId = `${KeyNamespace.USERS}:${user.clientId}`;
   const subscription = formatUserSubscription(nspClientId, event);
 
-  console.log(subscription);
-
   try {
     dispatch(nspClientId, subscription, message, sessionData);
   } catch (err) {
@@ -467,15 +464,14 @@ export function broadcastAuthUserConnectEvent(
   user: AuthUser,
   sessionData: SessionData
 ): void {
-  broadcastUserEvent(logger, AuthUserEvent.CONNECTION_STATUS, user, sessionData, {
+  const userData = {
+    ...user,
     isOnline: true,
     lastOnline: new Date().toISOString()
-  });
+  };
 
-  broadcastUserEvent(logger, AuthUserEvent.CONNECT, user, sessionData, {
-    isOnline: true,
-    lastOnline: new Date().toISOString()
-  });
+  broadcastUserEvent(logger, AuthUserEvent.CONNECTION_STATUS, user, sessionData, userData);
+  broadcastUserEvent(logger, AuthUserEvent.CONNECT, user, sessionData, userData);
 }
 
 export function broadcastAuthUserDisconnectEvent(
@@ -483,15 +479,14 @@ export function broadcastAuthUserDisconnectEvent(
   user: AuthUser,
   sessionData: SessionData
 ): void {
-  broadcastUserEvent(logger, AuthUserEvent.CONNECTION_STATUS, user, sessionData, {
+  const userData = {
+    ...user,
     isOnline: false,
     lastOnline: new Date().toISOString()
-  });
+  };
 
-  broadcastUserEvent(logger, AuthUserEvent.DISCONNECT, user, sessionData, {
-    isOnline: false,
-    lastOnline: new Date().toISOString()
-  });
+  broadcastUserEvent(logger, AuthUserEvent.CONNECTION_STATUS, user, sessionData, userData);
+  broadcastUserEvent(logger, AuthUserEvent.DISCONNECT, user, sessionData, userData);
 }
 
 export async function destoryRoomSubscriptions(
