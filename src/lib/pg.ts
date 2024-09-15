@@ -27,7 +27,7 @@ export function getPgPool(): Pool | null {
   pgPool = new Pool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
-    user: process.env.DB_USERNAME,
+    user: process.env.DB_USER,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     max: Number(process.env.DB_MAX_CONNECTIONS),

@@ -51,8 +51,8 @@
           "value": "${DB_MAX_CONNECTIONS}"
         },
         {
-          "name": "DB_USERNAME",
-          "value": "${DB_USERNAME}"
+          "name": "DB_USER",
+          "value": "${DB_USER}"
         },
         {
           "name": "RABBIT_MQ_CONNECTION_STRING",

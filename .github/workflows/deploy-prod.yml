@@ -57,7 +57,7 @@ jobs:
           DB_PROXY_ENABLED: ${{ vars.DB_PROXY_ENABLED }}
           DB_IDLE_TIMEOUT_MS: ${{ vars.DB_IDLE_TIMEOUT_MS }}
           DB_MAX_CONNECTIONS: ${{ vars.DB_MAX_CONNECTIONS }}
-          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_USER: ${{ vars.DB_USER }}
           DB_TLS_DISABLED: ${{ vars.DB_TLS_DISABLED }}
           RABBIT_MQ_CONNECTION_STRING: ${{ vars.RABBIT_MQ_CONNECTION_STRING }}
           RABBIT_MQ_QUEUE_COUNT: ${{ vars.RABBIT_MQ_QUEUE_COUNT }}
