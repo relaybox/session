@@ -1,9 +1,12 @@
 import { Connection, Envelope, PublisherProps } from 'rabbitmq-client';
 import { SessionData } from '../module/types';
+import { getLogger } from '../util/logger.util';
+
+const logger = getLogger('publisher');
 
 const AMQP_CONNECTION_STRING = process.env.RABBIT_MQ_CONNECTION_STRING;
 const AMQP_QUEUE_COUNT = Number(process.env.RABBIT_MQ_QUEUE_COUNT!);
-const AMQP_EXCHANGE_NAME = 'ds.rooms';
+const AMQP_EXCHANGE_NAME = 'ds.rooms.durable';
 const AMQP_QUEUE_TYPE = 'topic';
 const AMQP_MAX_RETRY_ATTEMPTS = 2;
 const AMQP_ROUTING_KEY_PREFIX = '$$';
@@ -11,13 +14,18 @@ const SERVICE_NAME = 'session';
 
 const connection = new Connection(AMQP_CONNECTION_STRING);
 
+connection.on('error', (err) => {
+  logger.error(`RabbitMQ connection error`, { err });
+});
+
 const publisherOptions: PublisherProps = {
   confirm: true,
   maxAttempts: AMQP_MAX_RETRY_ATTEMPTS,
   exchanges: [
     {
       exchange: AMQP_EXCHANGE_NAME,
-      type: AMQP_QUEUE_TYPE
+      type: AMQP_QUEUE_TYPE,
+      durable: true
     }
   ]
 };
