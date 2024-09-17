@@ -6,6 +6,8 @@ import { getLogger } from './util/logger.util';
 import { cleanupRedisClient } from './lib/redis';
 import { cleanupPgPool } from './lib/pg';
 
+// FORCE v3
+
 const logger = getLogger('session-service');
 
 startWorker();
