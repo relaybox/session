@@ -60,9 +60,6 @@ jobs:
           name: build-artifacts
           path: ./build
 
-      - name: List Directory Contents
-        run: ls -al
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -112,7 +109,7 @@ jobs:
 
       - name: Render task definition with environment variables and secrets
         env:
-          IMAGE: ${{ needs.build-amd64.outputs.ecr_image }}
+          IMAGE: ${{ needs.build-amd64-image.outputs.ecr_image }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           CRON_SCHEDULE_MINS: ${{ vars.CRON_SCHEDULE_MINS }}
           DB_HOST: ${{ vars.DB_HOST }}
