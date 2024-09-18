@@ -91,6 +91,7 @@ jobs:
         run: |
           docker tag ${{ env.SERVICE_NAME }}:$BUILD_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$ECR_IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$ECR_IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Render task definition with environment variables and secrets
         env:
