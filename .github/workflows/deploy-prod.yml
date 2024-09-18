@@ -17,7 +17,7 @@ jobs:
     environment:
       name: production
     outputs:
-      build_image_tag: ${{ steps.build-image.outputs.build_image_tag }}
+      tag: ${{ steps.build-image.outputs.tag }}
 
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
         run: |
           npm run build
           docker build -t ${{ env.SERVICE_NAME }}:${{ github.sha }} .
-          echo "build_image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Save Docker image as artifact
         run: |
@@ -55,7 +55,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v3
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -65,7 +65,7 @@ jobs:
 
       - name: Log in to Amazon ECR
         id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Download Docker image from artifact
         uses: actions/download-artifact@v4
@@ -73,7 +73,7 @@ jobs:
           name: docker-image
 
       - name: Load Docker image from artifact
-        run: docker load -i ${{ needs.build-image.outputs.build_image_tag }}.tar
+        run: docker load -i ${{ needs.build-image.outputs.tag }}.tar
 
       - name: Tag and push image to Amazon ECR
         id: build-image
@@ -81,7 +81,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
           ECR_IMAGE_TAG: ${{ github.sha }}
-          BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.build_image_tag }}
+          BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.tag }}
         run: |
           ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$ECR_IMAGE_TAG"
           docker tag ${{ env.SERVICE_NAME }}:$BUILD_IMAGE_TAG $ECR_IMAGE
@@ -147,7 +147,7 @@ jobs:
           name: docker-image
 
       - name: Load Docker image from artifact
-        run: docker load -i ${{ needs.build-image.outputs.build_image_tag }}.tar
+        run: docker load -i ${{ needs.build-image.outputs.tag }}.tar
 
       - name: Extract version from tag
         id: get_version
@@ -167,7 +167,7 @@ jobs:
 
       - name: Tag and push to dockerhub
         env:
-          BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.build_image_tag }}
+          BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.tag }}
           VERSION_TAG: ${{ steps.get_version.outputs.version }}
         run: |
           IMAGE_NAME="relaybox/${{ env.SERVICE_NAME }}"
