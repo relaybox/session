@@ -11,15 +11,50 @@ env:
   SERVICE_NAME: session
 
 jobs:
-  deploy:
-    name: deploy:prod
+  build-image:
+    name: build-image
     runs-on: ubuntu-latest
     environment:
       name: production
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    strategy:
+      matrix:
+        node-version: [20.x]
+    outputs:
+      build_image_tag: ${{ steps.build-image.outputs.build_image_tag }}
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Docker image
+        id: build-image
+        run: |
+          npm run build
+          docker build -t ${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          echo "build_image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Save Docker image as artifact
+        run: |
+          docker save ${{ env.SERVICE_NAME }}:${{ github.sha }} -o ${{ github.sha }}.tar
+
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: ${{ github.sha }}.tar
+          retention-days: 7
+
+  deploy:
+    name: deploy:prod
+    runs-on: ubuntu-latest
+    needs: build-image
+    environment:
+      name: production
+
+    steps:
       - uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
@@ -32,18 +67,24 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Download Docker image from artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+
+      - name: Load Docker image from artifact
+        run: docker load -i ${{ needs.build-image.outputs.build_image_tag }}.tar
+
+      - name: Tag and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_IMAGE_TAG: ${{ github.sha }}
+          BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.build_image_tag }}
         run: |
-          npm ci
-          npm run build
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker tag ${{ env.SERVICE_NAME }}:$BUILD_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$ECR_IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$ECR_IMAGE_TAG
 
       - name: Render task definition with environment variables and secrets
         env:
@@ -91,13 +132,20 @@ jobs:
   publish-docker-image:
     name: publish-docker-image
     runs-on: ubuntu-latest
-    needs: deploy
+    needs:
+      - build-image
+      - deploy
     environment:
       name: production
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Download Docker image from artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+
+      - name: Load Docker image from artifact
+        run: docker load -i ${{ needs.build-image.outputs.build_image_tag }}.tar
 
       - name: Extract version from tag
         id: get_version
@@ -115,26 +163,30 @@ jobs:
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ vars.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build Docker image
+      - name: Tag and push to dockerhub
+        env:
+          BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.build_image_tag }}
+          VERSION_TAG: ${{ steps.get_version.outputs.version }}
         run: |
-          npm ci
-          npm run build
-          echo "Building Docker image with version ${{ steps.get_version.outputs.version }}"
-          docker build -t relaybox/session:latest -t relaybox/session:${{ steps.get_version.outputs.version }} .
-
-      - name: Push Docker image
-        run: |
-          docker push relaybox/session:latest
-          docker push relaybox/session:${{ steps.get_version.outputs.version }}
+          docker tag ${{ env.SERVICE_NAME }}:$IMAGE_TAG relaybox/test:latest
+          docker tag ${{ env.SERVICE_NAME }}:$IMAGE_TAG relaybox/test:$VERSION_TAG
+          docker push relaybox/test:latest
+          docker push relaybox/test:$VERSION_TAG
 
   update-package-version:
     name: update-package-version
     runs-on: ubuntu-latest
-    needs: deploy
+    needs:
+      - build-image
+      - deploy
+      - publish-docker-image
     permissions:
       contents: write
     environment:
       name: production
+    strategy:
+      matrix:
+        node-version: [20.x]
 
     steps:
       - name: Checkout
