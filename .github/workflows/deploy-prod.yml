@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,14 +32,6 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: docker-cache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            docker-cache-${{ runner.os }}-
-
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
@@ -51,19 +41,9 @@ jobs:
         run: |
           npm ci
           npm run build
-          docker build --cache-from type=local,src=/tmp/.buildx-cache \
-                       --cache-to type=local,dest=/tmp/.buildx-cache \
-                       -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          # docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Save updated Docker cache
-        if: success()
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache-new
-          key: docker-cache-${{ runner.os }}-${{ github.sha }}
 
       - name: Render task definition with environment variables and secrets
         env:
@@ -135,26 +115,12 @@ jobs:
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ vars.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Restore Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: docker-cache-${{ runner.os }}-${{ github.sha }}
-
-      - name: Tag Docker image for Docker Hub
+      - name: Build Docker image
         run: |
-          IMAGE=${{ needs.deploy.outputs.image }}
-          VERSION=${{ steps.get_version.outputs.version }}
-          echo "Building Docker image with version $VERSION"
-          docker tag $IMAGE relaybox/session:latest
-          docker tag $IMAGE relaybox/session:$VERSION
-
-      # - name: Build Docker image
-      #   run: |
-      #     npm ci
-      #     npm run build
-      #     echo "Building Docker image with version ${{ steps.get_version.outputs.version }}"
-      #     docker build -t relaybox/session:latest -t relaybox/session:${{ steps.get_version.outputs.version }} .
+          npm ci
+          npm run build
+          echo "Building Docker image with version ${{ steps.get_version.outputs.version }}"
+          docker build -t relaybox/session:latest -t relaybox/session:${{ steps.get_version.outputs.version }} .
 
       - name: Push Docker image
         run: |
