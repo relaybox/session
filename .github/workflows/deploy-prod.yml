@@ -16,9 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-    strategy:
-      matrix:
-        node-version: [20.x]
     outputs:
       build_image_tag: ${{ steps.build-image.outputs.build_image_tag }}
 
@@ -53,9 +50,6 @@ jobs:
     needs: build-image
     environment:
       name: production
-    strategy:
-      matrix:
-        node-version: [20.x]
 
     steps:
       - name: Checkout
@@ -193,9 +187,6 @@ jobs:
       contents: write
     environment:
       name: production
-    strategy:
-      matrix:
-        node-version: [20.x]
 
     steps:
       - name: Checkout
