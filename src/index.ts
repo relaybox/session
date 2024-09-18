@@ -8,6 +8,8 @@ import { cleanupPgPool } from './lib/pg';
 
 const logger = getLogger('session-service');
 
+// FORCE v3
+
 startWorker();
 startSessionCron();
 
