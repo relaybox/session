@@ -175,8 +175,8 @@ jobs:
           BUILD_IMAGE_TAG: ${{ needs.build-image.outputs.build_image_tag }}
           VERSION_TAG: ${{ steps.get_version.outputs.version }}
         run: |
-          docker tag ${{ env.SERVICE_NAME }}:$IMAGE_TAG relaybox/test:latest
-          docker tag ${{ env.SERVICE_NAME }}:$IMAGE_TAG relaybox/test:$VERSION_TAG
+          docker tag ${{ env.SERVICE_NAME }}:$BUILD_IMAGE_TAG relaybox/test:latest
+          docker tag ${{ env.SERVICE_NAME }}:$BUILD_IMAGE_TAG relaybox/test:$VERSION_TAG
           docker push relaybox/test:latest
           docker push relaybox/test:$VERSION_TAG
 
