@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/20240919_workflow_refactor_v2
 
 jobs:
   build-app:
