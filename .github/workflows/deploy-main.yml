@@ -28,3 +28,4 @@ jobs:
       cluster-suffix: g8M6HWc0Cdph
       service-name: session
       service-suffix: nRbrd4FYxrs8
+    secrets: inherit

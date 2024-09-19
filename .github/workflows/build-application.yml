@@ -3,7 +3,7 @@ on:
 
 jobs:
   build-app:
-    name: Build / Application
+    name: Install / Build / Upload artifacts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

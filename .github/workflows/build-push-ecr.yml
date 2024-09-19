@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-push-ecr:
-    name: Build Image / Push ECR
+    name: Build amd64 image / Push ECR
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}

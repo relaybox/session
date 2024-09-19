@@ -26,7 +26,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy / ECS / ${{ inputs.environment }}
+    name: Rander task definition / Deploy ECS / ${{ inputs.environment }}
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}
