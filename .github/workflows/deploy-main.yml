@@ -27,7 +27,7 @@ jobs:
       environment: development
       ecr-image: ${{ needs.build-push-ecr.outputs.ecr-image }}
       cluster-name: core-services
-      cluster-suffix: g8M6HWc0Cdph
       service-name: session
+      cluster-suffix: g8M6HWc0Cdph
       service-suffix: nRbrd4FYxrs8
     secrets: inherit
