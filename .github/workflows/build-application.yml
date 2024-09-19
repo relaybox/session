@@ -1,5 +1,3 @@
-name: Build / Application
-
 on:
   workflow_call:
 
