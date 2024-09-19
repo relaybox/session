@@ -7,6 +7,9 @@ on:
       service-name:
         required: true
         type: string
+    outputs:
+      ecr_image:
+        value: ${{ jobs.build-push-ecr.outputs.ecr_image }}
 
 jobs:
   build-push-ecr:
