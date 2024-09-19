@@ -7,18 +7,21 @@ on:
       - feature/20240919_workflow_refactor_v2
 
 jobs:
-  build-app:
+  build-application:
+    name: Build application
     uses: ./.github/workflows/build-application.yml
 
   build-push-ecr:
+    name: Push ECR
     uses: ./.github/workflows/build-push-ecr.yml
-    needs: build-app
+    needs: build-application
     with:
       environment: development
       service-name: session
     secrets: inherit
 
   deploy-ecs:
+    name: Deploy ECS
     uses: ./.github/workflows/deploy-ecs.yml
     needs: build-push-ecr
     with:

@@ -1,5 +1,3 @@
-name: Extract Version
-
 outputs:
   version:
     description: The version extracted from the tag

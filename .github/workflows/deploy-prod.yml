@@ -11,18 +11,21 @@ env:
   SERVICE_NAME: session
 
 jobs:
-  build-app:
+  build-application:
+    name: Build application
     uses: ./.github/workflows/build-application.yml
 
   build-push-ecr:
+    name: Push ECR
     uses: ./.github/workflows/build-push-ecr.yml
-    needs: build-app
+    needs: build-application
     with:
       environment: production
       service-name: session
     secrets: inherit
 
   deploy-ecs:
+    name: Deploy ECS
     uses: ./.github/workflows/deploy-ecs.yml
     needs: build-push-ecr
     with:
@@ -35,10 +38,10 @@ jobs:
     secrets: inherit
 
   publish-multi-platform-image:
-    name: push:dockerhub
+    name: Publish multi-platform image
     runs-on: ubuntu-latest
     needs:
-      - build-app
+      - build-application
       - deploy-ecs
     environment:
       name: production
@@ -79,14 +82,12 @@ jobs:
             --push .
 
   update-package-version:
-    name: Update Package Version
+    name: Update package version
     runs-on: ubuntu-latest
     needs:
       - deploy-ecs
     permissions:
       contents: write
-    # environment:
-    #   name: production
 
     steps:
       - name: Checkout Repository

@@ -1,5 +1,3 @@
-name: Build / Push ECR
-
 on:
   workflow_call:
     inputs:
@@ -10,17 +8,17 @@ on:
         required: true
         type: string
     outputs:
-      ecr_image:
-        value: ${{ jobs.build-push-ecr.outputs.ecr_image }}
+      ecr-image:
+        value: ${{ jobs.build-push-ecr.outputs.ecr-image }}
 
 jobs:
   build-push-ecr:
-    name: Build amd64, tag and push image to ECR
+    name: Build amd64, push ECR
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}
     outputs:
-      ecr_image: ${{ steps.push-ecr.outputs.image }}
+      ecr-image: ${{ steps.push-ecr.outputs.image }}
 
     steps:
       - name: Checkout Repository
