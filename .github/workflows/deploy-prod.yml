@@ -30,7 +30,7 @@ jobs:
     needs: build-push-ecr
     with:
       environment: production
-      ecr-image: ${{ needs.build-push-ecr.outputs.ecr_image }}
+      ecr-image: ${{ needs.build-push-ecr.outputs.ecr-image }}
       cluster-name: core-services
       cluster-suffix: 9pkS9BJE3t40
       service-name: session
