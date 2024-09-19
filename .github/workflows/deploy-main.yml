@@ -17,8 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: development
-    # outputs:
-    #   commit_sha: ${{ steps.set-output.outputs.sha }}
 
     steps:
       - name: Checkout Repository
@@ -29,10 +27,6 @@ jobs:
 
       - name: Build Application
         run: npm run build
-
-      # - name: Set Commit SHA Output
-      #   id: set-output
-      #   run: echo "sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
