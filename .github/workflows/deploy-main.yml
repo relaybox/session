@@ -8,11 +8,9 @@ on:
 
 jobs:
   build-app:
-    name: Build / Application
     uses: ./.github/workflows/build-application.yml
 
   build-push-ecr:
-    name: Build Image / Push ECR
     uses: ./.github/workflows/build-push-ecr.yml
     needs: build-app
     with:
@@ -21,7 +19,6 @@ jobs:
     secrets: inherit
 
   deploy-ecs:
-    name: Deploy ECS / Development
     uses: ./.github/workflows/deploy-ecs.yml
     needs: build-push-ecr
     with:

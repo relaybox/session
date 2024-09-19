@@ -44,7 +44,7 @@ jobs:
 
       - name: Build amd64 Docker Image
         run: |
-          docker build -t ${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker build -t ${{ inputs.service-name }}:${{ github.sha }} .
 
       - name: Tag and Push Image to Amazon ECR
         id: push-ecr
