@@ -1,3 +1,5 @@
+name: Build / Push ECR
+
 on:
   workflow_call:
     inputs:
@@ -13,7 +15,7 @@ on:
 
 jobs:
   build-push-ecr:
-    name: Build amd64 image / Push ECR
+    name: Build amd64, tag and push image to ECR
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}

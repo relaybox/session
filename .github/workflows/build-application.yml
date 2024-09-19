@@ -1,9 +1,11 @@
+name: Build Application
+
 on:
   workflow_call:
 
 jobs:
   build-app:
-    name: Install / Build / Upload artifacts
+    name: Install, build and upload artifacts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
