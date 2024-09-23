@@ -6,7 +6,7 @@ import {
   RedisScripts,
   RedisClientOptions
 } from 'redis';
-import { getLogger } from '../util/logger.util';
+import { getLogger } from '@/util/logger.util';
 import fs from 'fs';
 import path from 'path';
 

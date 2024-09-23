@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { getLogger } from '../util/logger.util';
+import { getLogger } from '@/util/logger.util';
 import { JobName } from './router';
 
 const logger = getLogger('session-cron-init');

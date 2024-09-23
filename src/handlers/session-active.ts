@@ -1,8 +1,8 @@
 import { Pool } from 'pg';
-import { RedisClient } from '../lib/redis';
-import { getLogger } from '../util/logger.util';
-import { setSessionActive, setSessionHeartbeat } from '../module/service';
-import { SessionData, SocketConnectionEvent } from '../module/types';
+import { RedisClient } from '@/lib/redis';
+import { getLogger } from '@/util/logger.util';
+import { setSessionActive, setSessionHeartbeat } from '@/module/service';
+import { SessionData, SocketConnectionEvent } from '@/module/types';
 
 const logger = getLogger('session-active');
 

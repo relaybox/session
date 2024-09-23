@@ -1,10 +1,10 @@
 import 'dotenv/config';
 
-import { startWorker, stopWorker } from './module/worker';
-import { startSessionCron } from './module/cron';
-import { getLogger } from './util/logger.util';
-import { cleanupRedisClient } from './lib/redis';
-import { cleanupPgPool } from './lib/pg';
+import { startWorker, stopWorker } from '@/module/worker';
+import { startSessionCron } from '@/module/cron';
+import { getLogger } from '@/util/logger.util';
+import { cleanupRedisClient } from '@/lib/redis';
+import { cleanupPgPool } from '@/lib/pg';
 
 const logger = getLogger('session-service');
 

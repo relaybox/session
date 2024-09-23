@@ -1,12 +1,12 @@
 import { Pool } from 'pg';
-import { RedisClient } from '../lib/redis';
+import { RedisClient } from '@/lib/redis';
 import { SessionData, SocketConnectionEvent } from './types';
-import { handler as sessionDestroyHandler } from '../handlers/session-destroy';
-import { handler as sessionActiveHandler } from '../handlers/session-active';
-import { handler as sessionUserInactiveHandler } from '../handlers/session-user-inactive';
-import { handler as sessionSocketConnectionEventHandler } from '../handlers/session-socket-connection-event';
-import { handler as sessionHeartbeathandler } from '../handlers/session-heartbeat';
-import { handler as sessionCronTaskHandler } from '../handlers/session-cron-task';
+import { handler as sessionDestroyHandler } from '@/handlers/session-destroy';
+import { handler as sessionActiveHandler } from '@/handlers/session-active';
+import { handler as sessionUserInactiveHandler } from '@/handlers/session-user-inactive';
+import { handler as sessionSocketConnectionEventHandler } from '@/handlers/session-socket-connection-event';
+import { handler as sessionHeartbeathandler } from '@/handlers/session-heartbeat';
+import { handler as sessionCronTaskHandler } from '@/handlers/session-cron-task';
 
 export enum JobName {
   SESSION_DESTROY = 'session:destroy',

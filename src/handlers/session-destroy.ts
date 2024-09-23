@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { RedisClient } from '../lib/redis';
-import { getLogger } from '../util/logger.util';
+import { RedisClient } from '@/lib/redis';
+import { getLogger } from '@/util/logger.util';
 import {
   broadcastAuthUserDisconnectEvent,
   destoryRoomSubscriptions,
@@ -10,8 +10,8 @@ import {
   setAuthUserOffline,
   setSessionDisconnected,
   unsetSessionHeartbeat
-} from '../module/service';
-import { SessionData, SocketConnectionEvent } from '../module/types';
+} from '@/module/service';
+import { SessionData, SocketConnectionEvent } from '@/module/types';
 
 const logger = getLogger('session-destroy');
 

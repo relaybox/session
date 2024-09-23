@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { RedisClient } from '../lib/redis';
-import { getLogger } from '../util/logger.util';
+import { RedisClient } from '@/lib/redis';
+import { getLogger } from '@/util/logger.util';
 import {
   getActiveSession,
   getCachedRooms,
@@ -9,8 +9,8 @@ import {
   purgeSubscriptions,
   setSessionDisconnected,
   unsetSessionHeartbeat
-} from '../module/service';
-import { KeyNamespace } from '../module/types';
+} from '@/module/service';
+import { KeyNamespace } from '@/module/types';
 
 const logger = getLogger('session-cron');
 

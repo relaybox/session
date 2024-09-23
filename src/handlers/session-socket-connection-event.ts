@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { RedisClient } from '../lib/redis';
-import { getLogger } from '../util/logger.util';
+import { RedisClient } from '@/lib/redis';
+import { getLogger } from '@/util/logger.util';
 import {
   addAuthUser,
   broadcastAuthUserConnectEvent,
@@ -11,8 +11,8 @@ import {
   saveSessionData,
   saveSocketConnectionEvent,
   setAuthUserOnline
-} from '../module/service';
-import { SessionData, SocketConnectionEvent, SocketConnectionEventType } from '../module/types';
+} from '@/module/service';
+import { SessionData, SocketConnectionEvent, SocketConnectionEventType } from '@/module/types';
 
 const logger = getLogger('session-socket-connection-event');
 

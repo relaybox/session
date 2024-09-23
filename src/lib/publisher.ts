@@ -1,6 +1,6 @@
 import { Connection, Envelope, PublisherProps } from 'rabbitmq-client';
-import { SessionData } from '../module/types';
-import { getLogger } from '../util/logger.util';
+import { SessionData } from '@/module/types';
+import { getLogger } from '@/util/logger.util';
 
 const logger = getLogger('publisher');
 

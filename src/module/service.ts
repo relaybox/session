@@ -9,8 +9,8 @@ import {
   SessionData,
   SubscriptionType
 } from './types';
-import { RedisClient } from '../lib/redis';
-import { dispatch } from '../lib/publisher';
+import { RedisClient } from '@/lib/redis';
+import { dispatch } from '@/lib/publisher';
 import { PoolClient } from 'pg';
 import * as sessionDb from './db';
 

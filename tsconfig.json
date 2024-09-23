@@ -20,7 +20,8 @@
       "@/util/*": ["src/util/*"],
       "@/types/*": ["src/types/*"],
       "@/module/*": ["src/module/*"],
-      "@/lib/*": ["src/lib/*"]
+      "@/lib/*": ["src/lib/*"],
+      "@/handlers/*": ["src/handlers/*"]
     }
   },
   "include": ["src/**/*"],

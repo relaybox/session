@@ -1,8 +1,8 @@
 import { Job, Worker } from 'bullmq';
-import { getLogger } from '../util/logger.util';
+import { getLogger } from '@/util/logger.util';
 import { JobName, router } from './router';
-import { connectionOptionsIo, getRedisClient } from '../lib/redis';
-import { getPgPool } from '../lib/pg';
+import { connectionOptionsIo, getRedisClient } from '@/lib/redis';
+import { getPgPool } from '@/lib/pg';
 
 const QUEUE_NAME = 'session';
 

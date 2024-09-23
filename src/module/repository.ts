@@ -1,4 +1,4 @@
-import { RedisClient } from '../lib/redis';
+import { RedisClient } from '@/lib/redis';
 import { AuthUser } from './types';
 
 export async function getCachedRooms(
