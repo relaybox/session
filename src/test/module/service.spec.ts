@@ -88,7 +88,7 @@ const mockPublisher = vi.hoisted(() => ({
 
 vi.mock('@/lib/publisher', () => mockPublisher);
 
-describe('session.service', () => {
+describe('service', () => {
   let mockRedisClient = {} as RedisClient;
   let mockPgClient = {} as PoolClient;
 

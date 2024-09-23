@@ -36,7 +36,7 @@ async function handler({ id, name, data }: Job) {
 
   logger.info(`Processing job ${id} (${name})`, { data });
 
-  await router(pgPool, redisClient, name as JobName, data);
+  return router(pgPool, redisClient, name as JobName, data);
 }
 
 export async function startWorker() {
