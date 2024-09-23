@@ -20,7 +20,7 @@ const REDIS_AUTH_TOKEN = getRedisAuthToken();
 
 export type RedisClient = RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
 
-function getCeritificate(): Buffer | undefined {
+function getCertificate(): Buffer | undefined {
   try {
     return fs.readFileSync(path.join(__dirname, 'certs/AmazonRootCA1.pem'));
   } catch (err) {
@@ -32,7 +32,7 @@ function getCeritificate(): Buffer | undefined {
 export const tlsConnectionOptions = {
   tls: true,
   rejectUnauthorized: true,
-  cert: getCeritificate()
+  cert: getCertificate()
 };
 
 export const socketOptions = {
