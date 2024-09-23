@@ -7,6 +7,7 @@ import {
   broadcastSessionDestroy,
   broadcastUserEvent,
   deleteAuthUser,
+  destoryRoomSubscriptions,
   formatKey,
   formatPresenceSubscription,
   formatUserSubscription,
@@ -172,8 +173,8 @@ describe('session.service', () => {
   describe('purgeSubscriptions', () => {
     it('should purge all subscriptions by keyNamespace, connectionId and nspRoomId', async () => {
       mockRepository.getAllSubscriptions.mockResolvedValue({
-        user1: '2024-09-23T09:32:53.553Z',
-        user2: '2024-09-23T09:32:53.553Z'
+        'nsp:room1:event': '2024-09-23T09:32:53.553Z',
+        'nsp:room2:event': '2024-09-23T09:32:53.553Z'
       });
 
       const connectionId = '12345';
@@ -613,6 +614,30 @@ describe('session.service', () => {
         userData,
         sessionData
       );
+    });
+  });
+
+  describe('destoryRoomSubscriptions', () => {
+    it('should delete all subscriptions for a given connectionId', async () => {
+      const connectionId = '12345';
+
+      mockRepository.getCachedRooms.mockResolvedValue({
+        room1: '2024-09-23T09:32:53.553Z',
+        room2: '2024-09-23T09:32:53.553Z'
+      });
+
+      mockRepository.getAllSubscriptions.mockResolvedValue({
+        'room1:event': '2024-09-23T09:32:53.553Z',
+        'room2:event': '2024-09-23T09:32:53.553Z'
+      });
+
+      const cachedRoomsKey = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.ROOMS]);
+
+      await destoryRoomSubscriptions(logger, mockRedisClient, connectionId);
+
+      expect(mockRepository.getCachedRooms).toHaveBeenCalledWith(mockRedisClient, cachedRoomsKey);
+      expect(mockRepository.purgeCachedRooms).toHaveBeenCalledTimes(2);
+      expect(mockRepository.deleteSubscription).toHaveBeenCalledTimes(12);
     });
   });
 });
