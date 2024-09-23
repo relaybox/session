@@ -4,17 +4,15 @@ import { AuthUser } from './types';
 export async function getCachedRooms(
   redisClient: RedisClient,
   key: string
-): Promise<string[] | null> {
-  const rooms = await redisClient.hGetAll(key);
-  return Object.keys(rooms);
+): Promise<{ [x: string]: string }> {
+  return redisClient.hGetAll(key);
 }
 
-export async function getCachedUsers(
+export function getCachedUsers(
   redisClient: RedisClient,
   key: string
-): Promise<string[] | null> {
-  const users = await redisClient.hGetAll(key);
-  return Object.keys(users);
+): Promise<{ [x: string]: string }> {
+  return redisClient.hGetAll(key);
 }
 
 export async function deleteCachedRooms(redisClient: RedisClient, key: string): Promise<number> {
@@ -24,10 +22,8 @@ export async function deleteCachedRooms(redisClient: RedisClient, key: string): 
 export async function getAllSubscriptions(
   redisClient: RedisClient,
   key: string
-): Promise<string[]> {
-  const subscriptions = await redisClient.hGetAll(key);
-
-  return Object.keys(subscriptions);
+): Promise<{ [x: string]: string }> {
+  return redisClient.hGetAll(key);
 }
 
 export async function deleteHash(redisClient: RedisClient, key: string): Promise<number> {
@@ -125,15 +121,15 @@ export async function addAuthUser(
 export async function getAuthUser(
   redisClient: RedisClient,
   key: string,
-  user: AuthUser
+  clientId: string
 ): Promise<string | undefined> {
-  return redisClient.hGet(key, user.clientId);
+  return redisClient.hGet(key, clientId);
 }
 
 export async function deleteAuthUser(
   redisClient: RedisClient,
   key: string,
-  user: AuthUser
+  clientId: string
 ): Promise<number> {
-  return redisClient.hDel(key, user.clientId);
+  return redisClient.hDel(key, clientId);
 }

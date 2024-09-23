@@ -58,7 +58,7 @@ export interface SessionData {
   exp: number;
   timestamp: string;
   permissions: DsPermissions;
-  anonymous: boolean;
+  // anonymous: boolean;
   socketId: string;
   connectionId: string;
   user?: AuthUser;

@@ -6,7 +6,7 @@ export function getApplicationIdByAppPid(
   appPid: string
 ): Promise<QueryResult> {
   const query = `
-    SELECT id FROM applications WHERE pid = $1
+    SELECT id FROM applications WHERE pid = $1;
   `;
 
   return pgClient.query(query, [appPid]);

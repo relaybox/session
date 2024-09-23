@@ -14,13 +14,13 @@ import { dispatch } from '@/lib/publisher';
 import { PoolClient } from 'pg';
 import * as sessionDb from './db';
 
-const PLATFORM_RESERVED_NAMESPACE = '$';
-const WS_IDLE_TIMEOUT_MS = Number(process.env.WS_IDLE_TIMEOUT_MS) || 0;
-const ACTIVE_SESSION_HEARTBEAT_SCORE_MAX = WS_IDLE_TIMEOUT_MS * 4; // Sorted set score max threshold
-const ACTIVE_SESSION_EXPIRY_SECS = (WS_IDLE_TIMEOUT_MS / 1000) * 3; // Expiry time for active session key
-const CRON_TASK_MAX_INACTIVE_SESSIONS_COUNT = 100; // Limit of number of entires fetched per cron run
+export const PLATFORM_RESERVED_NAMESPACE = '$';
+export const WS_IDLE_TIMEOUT_MS = Number(process.env.WS_IDLE_TIMEOUT_MS) || 0;
+export const ACTIVE_SESSION_HEARTBEAT_SCORE_MAX = WS_IDLE_TIMEOUT_MS * 4; // Sorted set score max threshold
+export const ACTIVE_SESSION_EXPIRY_SECS = (WS_IDLE_TIMEOUT_MS / 1000) * 3; // Expiry time for active session key
+export const CRON_TASK_MAX_INACTIVE_SESSIONS_COUNT = 100; // Limit of number of entires fetched per cron run
 
-function formatKey(keyParts: string[]): string {
+export function formatKey(keyParts: string[]): string {
   return keyParts.join(':');
 }
 
@@ -36,7 +36,7 @@ export function formatUserSubscriptionAll(nspClientId: string): string {
   return `${nspClientId}:$:$:subscribe:all`;
 }
 
-export function getCachedRooms(
+export async function getCachedRooms(
   logger: Logger,
   redisClient: RedisClient,
   connectionId: string
@@ -44,11 +44,12 @@ export function getCachedRooms(
   logger.debug(`Getting cached rooms`, { connectionId });
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeySuffix.ROOMS}`;
+  const cachedRooms = await sessionRepository.getCachedRooms(redisClient, key);
 
-  return sessionRepository.getCachedRooms(redisClient, key);
+  return Object.keys(cachedRooms);
 }
 
-export function getCachedUsers(
+export async function getCachedUsers(
   logger: Logger,
   redisClient: RedisClient,
   connectionId: string
@@ -56,8 +57,9 @@ export function getCachedUsers(
   logger.debug(`Getting cached users`, { connectionId });
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeyNamespace.USERS}`;
+  const cachedUsers = await sessionRepository.getCachedUsers(redisClient, key);
 
-  return sessionRepository.getCachedUsers(redisClient, key);
+  return Object.keys(cachedUsers);
 }
 
 export function purgeCachedRooms(
@@ -91,7 +93,7 @@ export async function purgeSubscriptions(
     const subscriptions = await sessionRepository.getAllSubscriptions(redisClient, key);
 
     await Promise.all(
-      subscriptions.map(async (subscription) =>
+      Object.keys(subscriptions).map(async (subscription) =>
         sessionRepository.deleteSubscription(redisClient, key, subscription)
       )
     );
@@ -211,6 +213,7 @@ export function getActiveSession(
 
   return sessionRepository.getActiveSession(redisClient, key);
 }
+
 export async function getInactiveConnectionIds(
   logger: Logger,
   redisClient: RedisClient
@@ -411,8 +414,9 @@ export async function getAuthUser(
 
   try {
     const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
+    const { clientId } = user;
 
-    const authUser = await sessionRepository.getAuthUser(redisClient, key, user);
+    const authUser = await sessionRepository.getAuthUser(redisClient, key, clientId);
 
     return authUser ? JSON.parse(authUser) : null;
   } catch (err: any) {
@@ -431,8 +435,9 @@ export async function deleteAuthUser(
 
   try {
     const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
+    const { clientId } = user;
 
-    await sessionRepository.deleteAuthUser(redisClient, key, user);
+    await sessionRepository.deleteAuthUser(redisClient, key, clientId);
   } catch (err: any) {
     logger.error(`Failed to add auth user`, { err });
     throw err;
