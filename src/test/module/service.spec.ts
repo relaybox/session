@@ -1,5 +1,4 @@
-// import '@/test/__mocks__/external/bullmq';
-import { describe, expect, vi, it, beforeEach, MockInstance, afterEach } from 'vitest';
+import { describe, expect, vi, it, beforeEach, afterEach } from 'vitest';
 import {
   addAuthUser,
   broadcastAuthUserConnectEvent,

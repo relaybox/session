@@ -501,8 +501,6 @@ export async function destoryRoomSubscriptions(
 ): Promise<any> {
   const rooms = await getCachedRooms(logger, redisClient, connectionId);
 
-  console.log('ROOMS', rooms);
-
   if (rooms && rooms.length > 0) {
     return Promise.all(
       rooms.map(async (nspRoomId) =>

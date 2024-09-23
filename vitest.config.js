@@ -4,19 +4,14 @@ import { resolve } from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@/util': resolve(__dirname, 'src/util'),
-      '@/types': resolve(__dirname, 'src/types'),
-      '@/module': resolve(__dirname, 'src/module'),
-      '@/lib': resolve(__dirname, 'src/lib'),
-      '@/handlers': resolve(__dirname, 'src/handlers'),
-      '@/test': resolve(__dirname, 'src/test')
+      '@': resolve(__dirname, 'src')
     }
   },
   test: {
     // silent: true,
     globals: true,
     tsconfig: './tsconfig.json',
-    include: ['**/*.test.ts'],
+    include: ['**/*.test.ts', '**/*.spec.ts'],
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     coverage: {

@@ -17,12 +17,6 @@
     "outDir": "build",
     "paths": {
       "@/*": ["src/*"]
-      // "src/*": ["src/*"],
-      // "@/util/*": ["src/util/*"],
-      // "@/types/*": ["src/types/*"],
-      // "@/module/*": ["src/module/*"],
-      // "@/lib/*": ["src/lib/*"],
-      // "@/handlers/*": ["src/handlers/*"]
     }
   },
   "include": ["src/**/*"],
