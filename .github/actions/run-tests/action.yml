@@ -9,7 +9,9 @@ runs:
         cache: npm
 
     - name: Install Dependencies
+      shell: bash
       run: npm ci
 
     - name: Run Tests
+      shell: bash
       run: npm run test
