@@ -2,7 +2,8 @@ name: Deploy production
 
 on:
   release:
-    types: [published]
+    types:
+      - published
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
