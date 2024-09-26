@@ -6,6 +6,12 @@ on:
       - main
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/run-tests
+
   build-application:
     name: Build
     uses: ./.github/workflows/build-application.yml
