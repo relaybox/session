@@ -1,3 +1,4 @@
+import { getMockSession } from '@/tests/__mocks__/internal/session.mock';
 import { describe, expect, vi, it, beforeEach, afterEach } from 'vitest';
 import {
   addAuthUser,
@@ -42,7 +43,6 @@ import {
   KeySuffix,
   SubscriptionType
 } from '@/module/types';
-import { getMockSession } from '../__mocks__/internal/session.mock';
 import { PoolClient } from 'pg';
 
 const logger = getLogger('session-service');
