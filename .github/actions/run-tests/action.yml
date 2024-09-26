@@ -1,6 +1,5 @@
 runs:
   using: composite
-  shell: bash
   steps:
     - name: Setup Node
       uses: actions/setup-node@v4
