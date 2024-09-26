@@ -1,7 +1,7 @@
 {
   "family": "relaybox-session-prod",
-  "taskRoleArn": "arn:aws:iam::637423225170:role/relaybox-prod-ecs-roles-ECSTaskRole-Fl3Ty8kj1qEO",
-  "executionRoleArn": "arn:aws:iam::637423225170:role/relaybox-prod-ecs-roles-ECSTaskExecutionRole-NFX4hAFZPWWC",
+  "taskRoleArn": "${AWS_ECS_TASK_ROLE_ARN}",
+  "executionRoleArn": "${AWS_ECS_EXECUTION_ROLE_ARN}",
   "containerDefinitions": [
     {
       "name": "relaybox-session-prod",

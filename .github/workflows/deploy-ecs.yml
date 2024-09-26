@@ -47,6 +47,8 @@ jobs:
         env:
           IMAGE: ${{ inputs.ecr-image }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ECS_EXECUTION_ROLE_ARN: ${{ vars.AWS_ECS_EXECUTION_ROLE_ARN }}
+          AWS_ECS_TASK_ROLE_ARN: ${{ vars.AWS_ECS_TASK_ROLE_ARN }}
           CRON_SCHEDULE_MINS: ${{ vars.CRON_SCHEDULE_MINS }}
           DB_HOST: ${{ vars.DB_HOST }}
           DB_NAME: ${{ vars.DB_NAME }}
