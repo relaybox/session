@@ -1,4 +1,4 @@
-import { getMockSession } from '@/tests/__mocks__/internal/session.mock';
+import { getMockSession } from '../__mocks__/internal/session.mock';
 import { describe, expect, vi, it, beforeEach, afterEach } from 'vitest';
 import {
   addAuthUser,
