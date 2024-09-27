@@ -130,7 +130,7 @@ describe('service', () => {
 
   describe('getCachedRooms', () => {
     it('should return an array of cached rooms by connectionId', async () => {
-      mockRepository.getCachedRooms.mockResolvedValue({
+      mockRepository.getCachedRooms.mockResolvedValueOnce({
         room1: '2024-09-23T09:32:53.553Z',
         room2: '2024-09-23T09:32:53.553Z'
       });
@@ -145,7 +145,7 @@ describe('service', () => {
 
   describe('getCachedUsers', () => {
     it('should return an array of cached users by connectionId', async () => {
-      mockRepository.getCachedUsers.mockResolvedValue({
+      mockRepository.getCachedUsers.mockResolvedValueOnce({
         user1: '2024-09-23T09:32:53.553Z',
         user2: '2024-09-23T09:32:53.553Z'
       });
@@ -171,7 +171,7 @@ describe('service', () => {
 
   describe('purgeSubscriptions', () => {
     it('should purge all subscriptions by keyNamespace, connectionId and nspRoomId', async () => {
-      mockRepository.getAllSubscriptions.mockResolvedValue({
+      mockRepository.getAllSubscriptions.mockResolvedValueOnce({
         'nsp:room1:event': '2024-09-23T09:32:53.553Z',
         'nsp:room2:event': '2024-09-23T09:32:53.553Z'
       });
@@ -299,7 +299,7 @@ describe('service', () => {
   describe('getInactiveConnectionIds', () => {
     it('should return an array of inactive connectionIds based on zrange score', async () => {
       const connectionIds = ['12345', '67890'];
-      mockRepository.getInactiveConnectionIds.mockResolvedValue(connectionIds);
+      mockRepository.getInactiveConnectionIds.mockResolvedValueOnce(connectionIds);
 
       const keepAliveCacheKey = formatKey([KeyPrefix.HEARTBEAT, KeySuffix.KEEP_ALIVE]);
 
@@ -386,7 +386,7 @@ describe('service', () => {
 
   describe('getAppId', () => {
     it('should get corrseponding appId by appPid', async () => {
-      mockDb.getApplicationIdByAppPid.mockResolvedValue({
+      mockDb.getApplicationIdByAppPid.mockResolvedValueOnce({
         rows: [
           {
             id: 'app-id'
@@ -404,7 +404,7 @@ describe('service', () => {
 
   describe('getConnectionEventId', () => {
     it('should get corrseponding appId by appPid', async () => {
-      mockDb.getConnectionEventId.mockResolvedValue({
+      mockDb.getConnectionEventId.mockResolvedValueOnce({
         rows: [
           {
             id: 'connection-event-id'
@@ -490,7 +490,7 @@ describe('service', () => {
       const authUser = sessionData.user as AuthUser;
       const usersCachedKey = formatKey([KeyPrefix.AUTH, appPid, 'online']);
 
-      mockRepository.getAuthUser.mockResolvedValue(JSON.stringify(authUser));
+      mockRepository.getAuthUser.mockResolvedValueOnce(JSON.stringify(authUser));
 
       const cachedAuthUser = await getAuthUser(logger, mockRedisClient, appPid, authUser);
 
@@ -511,7 +511,7 @@ describe('service', () => {
       const authUser = sessionData.user as AuthUser;
       const usersCachedKey = formatKey([KeyPrefix.AUTH, appPid, 'online']);
 
-      mockRepository.getAuthUser.mockResolvedValue(JSON.stringify(authUser));
+      mockRepository.getAuthUser.mockResolvedValueOnce(JSON.stringify(authUser));
 
       await deleteAuthUser(logger, mockRedisClient, appPid, authUser);
 
