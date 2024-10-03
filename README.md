@@ -1,6 +1,6 @@
-# Session - Session Management Service by RelayBox
+# Session - RelayBox Session Service
 
-The session service is one of four core services that keep the core database up to date with the latest data broadcast by the UWS Realtime Service.
+The session service is one of four core services that keep the core database up to date with the latest data broadcast by the [uWS](https://github.com/relaybox/uws) Realtime Service.
 
 ## Getting Started
 
