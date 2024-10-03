@@ -119,6 +119,8 @@ We'll cover the cron task and active session heartbeat logic shortly, bear with 
 
 Sessions are considered active whien a socket connection is established. Session data is stored in Redis along with the connection id attached to the session as the key.
 
+Sessions maintain their active state by emitting a heartbeat every `WS_IDLE_TIMEOUT_MS` milliseconds.
+
 A key will always start with a `ttl` of `(WS_IDLE_TIMEOUT_MS / 1000) * 3` seconds. Each time a session heartbeat is received the `ttl` is reset. When the cron task runs, it iterates a sorted set of connection IDs. Any connection IDs found that has a value of `WS_IDLE_TIMEOUT_MS * 4` will be considered inactive and purged. This means that a heartbeat has not been registered and the active session key has expired.
 
 This job is responsible for processing heartbeat jobs and resetting the `ttl` of the session in response to a session heartbeat to ensure it isn't puged when the a session destroy job is processed or the cron task runs.
@@ -147,6 +149,10 @@ In the event of a connection, it saves the initila session data matched to the c
 
 In the event of a diconnection, it will persist the user as offline and broadcast the disconnection event to relevant subscribers.
 
-## SESSION_HEARTBEAT = 'session:heartbeat'
+## session:cron:task
 
-## SESSION_CRON_TASK = 'session:cron:task'
+Ensuring session data is acurrate is a critical part of the relaybox ecosystem. The cron task acts as a fallback to clean up hanging session data in the event of the normal session management failing.
+
+A soted set of connection IDs is maintained with a value containng the last heartbeat that was recieved for the session. When the cron tasj runs it will get ftech a list of all sessions that have a value of greater than `(WS_IDLE_TIMEOUT_MS / 1000) * 4`, of which there should be none.
+
+If any are found it will firt check if there is an active session relating to the ID. If none are found, it will run the session destory logic against the session assocated with the ID nsuring that statistics are valid and alyws accurate.
