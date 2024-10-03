@@ -494,7 +494,7 @@ export function broadcastAuthUserDisconnectEvent(
   broadcastUserEvent(logger, AuthUserEvent.DISCONNECT, user, sessionData, userData);
 }
 
-export async function destoryRoomSubscriptions(
+export async function destroyRoomSubscriptions(
   logger: Logger,
   redisClient: RedisClient,
   connectionId: string
@@ -521,7 +521,7 @@ export async function destoryRoomSubscriptions(
   }
 }
 
-export async function destoryUserSubscriptions(
+export async function destroyUserSubscriptions(
   logger: Logger,
   redisClient: RedisClient,
   connectionId: string

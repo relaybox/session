@@ -7,7 +7,7 @@ import {
   broadcastSessionDestroy,
   broadcastUserEvent,
   deleteAuthUser,
-  destoryRoomSubscriptions,
+  destroyRoomSubscriptions,
   formatKey,
   formatPresenceSubscription,
   formatUserSubscription,
@@ -616,7 +616,7 @@ describe('service', () => {
     });
   });
 
-  describe('destoryRoomSubscriptions', () => {
+  describe('destroyRoomSubscriptions', () => {
     it('should delete all subscriptions for a given connectionId', async () => {
       const connectionId = '12345';
 
@@ -632,7 +632,7 @@ describe('service', () => {
 
       const cachedRoomsKey = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.ROOMS]);
 
-      await destoryRoomSubscriptions(logger, mockRedisClient, connectionId);
+      await destroyRoomSubscriptions(logger, mockRedisClient, connectionId);
 
       expect(mockRepository.getCachedRooms).toHaveBeenCalledWith(mockRedisClient, cachedRoomsKey);
       expect(mockRepository.purgeCachedRooms).toHaveBeenCalledTimes(2);
