@@ -137,7 +137,15 @@ Imagine a scenario where a user is disconnected due to entering a tunnel whislt 
 
 Essentually, this logic allows a user to miss 2 session heartbeats before session data related to thier connection is purged.
 
-## SESSION_SOCKET_CONNECTION_EVENT = 'session:socket:connection_event'
+## session:socket:connection_event
+
+Differing from session destory, inactive and active which provide session feedback anbd persistance based on different time dlays, this job is immediate feedback about connection and disconnectin events. This event plays a pivotal role in aggregating and calculating peak connection statistics for an application.
+
+The processed job is added when a connection is estabished and also disconnected. The responsibility of this job is to persist the timsatmp associated with the job and the action (eith connect or disconnect). It will also broadcast immediate feedback about the status of a user (if they are authenticated). This data is can be handled via the [@relaybox/client](https://relaybox.net/docs/api-reference/relaybox-client/users#user-on-connection-event) client SDK library.
+
+In the event of a connection, it saves the initila session data matched to the connction ID, persists the connection status in the database and broadcasts the event to relevant subscribers.
+
+In the event of a diconnection, it will persist the user as offline and broadcast the disconnection event to relevant subscribers.
 
 ## SESSION_HEARTBEAT = 'session:heartbeat'
 
