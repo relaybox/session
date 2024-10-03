@@ -159,4 +159,6 @@ If any are found, it first checks if there is an active session related to the I
 
 ## TLDR
 
+First of all, fair enough!! It's kinda long winded. In short...
+
 The session management system in RelayBox ensures that active sessions are accurately tracked and maintained, using heartbeats to confirm their status. Each session is identified by a unique connection ID and is stored in Redis with a time-to-live (TTL) value, which is reset every time a heartbeat is received. If a session misses too many heartbeats, it is marked as inactive and eventually destroyed if not restored. Additionally, a cron task acts as a safety net, regularly checking for any sessions that may have been missed by normal processes and cleaning up any stale or inactive session data, ensuring system integrity and accurate connection statistics.
