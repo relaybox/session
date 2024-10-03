@@ -4,63 +4,14 @@ The session service is one of four core services that keep the core database up 
 
 ## Getting Started
 
-Create a copy of .env.tempate in the root of the project and rename it to .env. Add the following configuration options...
+### Prerequisites
 
-```
-# Local DB host
-DB_HOST=
+- Node.js 20.x
+- Docker (optional)
 
-# Local DB name
-DB_NAME=
+### Configuration
 
-# Local DB port
-DB_PORT=
-
-# Local DB proxy enabled - Set to false for local development
-DB_PROXY_ENABLED=
-
-# Local DB user
-DB_USER=
-
-# Local DB password
-DB_PASSWORD=
-
-# Local DB max connections
-DB_MAX_CONNECTIONS=
-
-# Local DB idle timeout
-DB_IDLE_TIMEOUT_MS=
-
-# Local DB TLS disabled - Set to true for local development unless connecttion over TLS
-DB_TLS_DISABLED=
-
-# Local Redis host
-REDIS_HOST=
-
-# Local Redis port
-REDIS_PORT=
-
-# Local DB TLS disabled - Set to true for local development unless connecttion over TLS
-REDIS_TLS_DISABLED=
-
-# Local RabbitMQ connection string
-RABBIT_MQ_CONNECTION_STRING=
-
-# Recommended setting 5 - This value needs to be synced across services
-RABBIT_MQ_QUEUE_COUNT=
-
-# Recommended setting "30000" - This value needs to be synced across services
-WS_IDLE_TIMEOUT_MS=
-
-# Length of time in mins between each session cron run, for more details, see the "Session Management" section
-CRON_SCHEDULE_MINS=
-
-# Localhost - Set to true for local development
-LOCALHOST=
-
-# Desired log level - recommended setting "debug" for local development
-LOG_LEVEL=
-```
+Create a copy of `.env.template` in the root of the project and rename it to `.env`. Adjust the configuration settings to match your local environment. Further information about each environment variable can be found in `.env.template`.
 
 ## Installation
 
@@ -78,7 +29,7 @@ npm run dev
 
 ## Testing
 
-Unit tests are built using `vitest`.
+The service unit tests can be found in the `./test` directory. Tests are run using the `vitest` runner.
 
 ```
 npm run test
