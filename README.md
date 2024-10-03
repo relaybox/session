@@ -4,7 +4,7 @@ The session service is one of 4 core services that manage keeping the core datab
 
 ## Getting Started
 
-Session management is a critical part of the relaybox ecosystem.
+Create a copy of .env.tempate in the root of the project and rename it to .env. Add the following configuration options...
 
 ```
 # Local DB host
@@ -84,9 +84,19 @@ Unit tests are built using `vitest`.
 npm run test
 ```
 
-## About this Service
+## About "Sessions"
 
-The service is responsisble for starting a worker that processes FIFO jobs added to BullMQ from [uws](https://github.com/relaybox/uws) service.
+Sessions are a critical part of the relaybox ecosystem. Sessions are directly related to the websocket connection lifecycle and the unique ID assigned to each connection.
+
+A session begins when a socket connection is established and is marked for deletion when the connection is closed. To cater for network blips, minor outages and other disruptions a session can be re-established by the client using the same connection ID. This enables a reconnected session to restore subscriptions that would otherwise be lost.
+
+If the client attempts to reconnect using an existing connection ID, following validation, the session will be restored and the user can continue to interact with the service as if the connection was never closed.
+
+This mechanism allows the service to maintain a persistent session "state" across the network and from any process, not nescessarily the one that initiated the connection.
+
+## About this service
+
+The "Session" service starts worker processes that handle FIFO jobs added to BullMQ from [uws](https://github.com/relaybox/uws) service and is responsible for managing the session lifecycle in terms of persisting data and broadcasting events to relevant subscribers.
 
 The following jobs are handled by the service:
 
@@ -94,25 +104,38 @@ The following jobs are handled by the service:
 
 A delayed job added when a websocket connection is closed by a client, either a clean disconnect or otherwise. The job is added with a delay of `Number(process.env.WS_IDLE_TIMEOUT_MS) * 4`.
 
-If no active session is found when the job is processed, the session will be considered inactive and be destroyed. Destorying a session involves:
+If an active session related to the connection ID of the job being processed is not found when the job is processed, the session will be considered inactive and destroyed. Destroying a session involves:
 
-- Purging room subscriptions
-- Purging user subscriptions
-- Removing active members from presence sets previously joined
+- Purging cached room subscriptions
+- Purging cached user subscriptions
 - Unsetting the session heartbeat value
 - Persisting the session disconnection event in the database
 - Persisting user online visibility in the database
-- Broadcasting session disconnection event relevant subscribers
+- Removing the session id from the sorted set of heartbeat values (used by the cron task)
+
+We'll cover the cron task and active session heartbeat logic shortly, bear with me :)
 
 ## session:active
 
-Sessions ar considered active whien a socket connection is established. Session data is stored in Redis along with the connection id attached to the session.
+Sessions are considered active whien a socket connection is established. Session data is stored in Redis along with the connection id attached to the session as the key.
 
-A key will always have a `ttl` of `(WS_IDLE_TIMEOUT_MS / 1000) * 3` seconds. Each time a session heartbeat is received the `ttl` is reset. When teh cron task runs, it iterates a sorted set of connection IDs. Any connection IDs found that have a value of `WS_IDLE_TIMEOUT_MS * 4` will be considered inactive and purged.
+A key will always start with a `ttl` of `(WS_IDLE_TIMEOUT_MS / 1000) * 3` seconds. Each time a session heartbeat is received the `ttl` is reset. When the cron task runs, it iterates a sorted set of connection IDs. Any connection IDs found that has a value of `WS_IDLE_TIMEOUT_MS * 4` will be considered inactive and purged. This means that a heartbeat has not been registered and the active session key has expired.
 
-This job is responsible for setting resetting the `ttl` of the session to ensure it isn't puged when the cron task runs.
+This job is responsible for processing heartbeat jobs and resetting the `ttl` of the session in response to a session heartbeat to ensure it isn't puged when the a session destroy job is processed or the cron task runs.
 
-## SESSION_USER_INACTIVE = 'session:user:inactive'
+## session:user:inactive
+
+Inactive sessions are slightly different to destoyed sessions. Inactive session jobs are preocessed in a similar way to destroyed sessions with some important diferences.
+
+A disconnected session is marked as inactive and a job is added to the session queue with a 5 seconds delay. Instead of being associated with the connection ID, the uid (which is either the client ID or connection ID based on whether the client is considered authenticated) is used to identtify the job.
+
+Consider this job as a soft destroy event. After a brief delay, The user attached to the session will be removed from any presence sets they are currently a member of and the session disconnection event will be broadcast to relevant subscribers.
+
+However, the session subscriptions will not be purged, allowing a new connection with the same connection ID to restore conections in the event of a network disruption.
+
+Imagine a scenario where a user is disconnected due to entering a tunnel whislt driving. The tunnel may last for 30 seconds but when the user emerges, they will want to continue to interact with the service as if they were never disconnected. This mechanism allows other users to acknowledge the disconnection after a short period of time whilst allowing the reconnected user to pick up their previous session state.
+
+Essentually, this logic allows a user to miss 2 session heartbeats before session data related to thier connection is purged.
 
 ## SESSION_SOCKET_CONNECTION_EVENT = 'session:socket:connection_event'
 

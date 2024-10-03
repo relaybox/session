@@ -3,8 +3,8 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   broadcastAuthUserDisconnectEvent,
-  destoryRoomSubscriptions,
-  destoryUserSubscriptions,
+  destroyRoomSubscriptions,
+  destroyUserSubscriptions,
   getActiveSession,
   getAuthUser,
   setAuthUserOffline,
@@ -39,8 +39,8 @@ export async function handler(
       connectionId
     });
 
-    await destoryRoomSubscriptions(logger, redisClient, connectionId);
-    await destoryUserSubscriptions(logger, redisClient, connectionId);
+    await destroyRoomSubscriptions(logger, redisClient, connectionId);
+    await destroyUserSubscriptions(logger, redisClient, connectionId);
     await setSessionDisconnected(logger, pgClient, connectionId);
     await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
