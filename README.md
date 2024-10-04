@@ -49,9 +49,11 @@ This mechanism enables the service to maintain a persistent session "state" acro
 
 The "Session" service initiates worker processes that handle FIFO jobs added to BullMQ by the [UWS](https://github.com/relaybox/uws) service. It is responsible for managing the session lifecycle, including persisting data and broadcasting events to relevant subscribers.
 
+![RelayBox system diagram, highlight Session](/assets/system/relaybox-system-session.png)
+
 The following jobs are handled by the service:
 
-### session:destroy
+- `session:destroy`
 
 A delayed job is added when a WebSocket connection is closed by a client, whether through a clean disconnect or otherwise. The job is scheduled with a delay of `Number(process.env.WS_IDLE_TIMEOUT_MS) * 4`.
 
@@ -66,7 +68,7 @@ If no active session related to the job's connection ID is found when the job is
 
 We'll cover the cron task and active session heartbeat logic shortly, so bear with me! :)
 
-### session:active
+- `session:active`
 
 Sessions are considered active when a socket connection is established. Session data is stored in Redis, with the connection ID attached to the session as the key.
 
@@ -76,7 +78,7 @@ A session key is initialized with a `ttl` of `(WS_IDLE_TIMEOUT_MS / 1000) * 3` s
 
 This job is responsible for processing heartbeat jobs and resetting the session's ttl upon receiving a heartbeat, ensuring the session is not purged when a session destroy job is processed or the cron task runs.
 
-### session:user:inactive
+- `session:user:inactive`
 
 Inactive sessions are slightly different from destroyed sessions. Inactive session jobs are processed similarly to destroyed sessions, but with some important differences.
 
@@ -90,7 +92,7 @@ For example, if a user is disconnected due to entering a tunnel while driving, t
 
 Essentially, this logic allows a user to miss two session heartbeats before the session data related to their connection is purged.
 
-### session:socket:connection_event
+- `session:socket:connection_event`
 
 Unlike session destroy, inactive, and active states, which provide session feedback and persistence based on varying time delays, this job provides immediate feedback on connection and disconnection events. It plays a pivotal role in aggregating and calculating peak connection statistics for an application.
 
@@ -100,7 +102,7 @@ In the event of a connection, the job saves the initial session data matched to 
 
 In the event of a disconnection, the job persists the user's offline status and broadcasts the disconnection event to relevant subscribers.
 
-### session:cron:task
+- `session:cron:task`
 
 Ensuring session data is accurate is a critical part of the RelayBox ecosystem. The cron task acts as a fallback to clean up hanging session data in case the regular session management system fails.
 
