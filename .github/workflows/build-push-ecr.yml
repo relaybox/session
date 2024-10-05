@@ -24,12 +24,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: ./build
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -44,6 +38,8 @@ jobs:
 
       - name: Build amd64 Docker Image
         run: |
+          npm ci
+          npm run build
           docker build -t ${{ inputs.service-name }}:${{ github.sha }} .
 
       - name: Tag and Push Image to Amazon ECR

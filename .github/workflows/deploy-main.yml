@@ -13,15 +13,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/run-tests
 
-  build-application:
-    name: Build
-    needs: test
-    uses: ./.github/workflows/build-application.yml
-
   build-push-ecr:
     name: Push
     uses: ./.github/workflows/build-push-ecr.yml
-    needs: build-application
+    needs: test
     with:
       environment: development
       service-name: session
