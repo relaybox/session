@@ -50,7 +50,7 @@ jobs:
         id: push-ecr
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
+          ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
           ECR_IMAGE_TAG: ${{ github.sha }}
         run: |
           ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$ECR_IMAGE_TAG"
