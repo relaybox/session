@@ -1,6 +1,6 @@
 # Session - RelayBox Session Service
 
-The session service is one of four core services that keep the core database up to date with the latest data broadcast by the [uWS](https://github.com/relaybox/uws) Realtime Service.
+The session service is one of four core services that keep the core database up to date with the latest data broadcast by the [Core](https://github.com/relaybox/core) Realtime Service.
 
 ## Getting Started
 
@@ -47,7 +47,7 @@ This mechanism enables the service to maintain a persistent session "state" acro
 
 ## About this service
 
-The "Session" service initiates worker processes that handle FIFO jobs added to BullMQ by the [UWS](https://github.com/relaybox/uws) service. It is responsible for managing the session lifecycle, including persisting data and broadcasting events to relevant subscribers.
+The "Session" service initiates worker processes that handle FIFO jobs added to BullMQ by the [Core](https://github.com/relaybox/core) service. It is responsible for managing the session lifecycle, including persisting data and broadcasting events to relevant subscribers.
 
 <!-- ![RelayBox system diagram, highlight Session](/assets/system/relaybox-system-session.png) -->
 
