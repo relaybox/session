@@ -49,7 +49,7 @@ This mechanism enables the service to maintain a persistent session "state" acro
 
 The "Session" service initiates worker processes that handle FIFO jobs added to BullMQ by the [UWS](https://github.com/relaybox/uws) service. It is responsible for managing the session lifecycle, including persisting data and broadcasting events to relevant subscribers.
 
-![RelayBox system diagram, highlight Session](/assets/system/relaybox-system-session.png)
+<!-- ![RelayBox system diagram, highlight Session](/assets/system/relaybox-system-session.png) -->
 
 The following jobs are handled by the service:
 
