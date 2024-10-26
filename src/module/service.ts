@@ -36,6 +36,10 @@ export function formatUserSubscriptionAll(nspClientId: string): string {
   return `${nspClientId}:$:$:subscribe:all`;
 }
 
+export function getPublicClientId(clientId: string): string {
+  return clientId.split(':')[1];
+}
+
 export async function getCachedRooms(
   logger: Logger,
   redisClient: RedisClient,
@@ -168,7 +172,14 @@ export function broadcastSessionDestroy(
   logger.debug(`Broadcasting session destroy`, { uid, nspRoomId });
 
   const subscription = formatPresenceSubscription(nspRoomId, SubscriptionType.LEAVE);
-  const data = { uid, message: 'Session disconnect' };
+  const timestamp = new Date().toISOString();
+
+  const data = {
+    clientId: getPublicClientId(uid),
+    event: SubscriptionType.LEAVE,
+    timestamp,
+    user: sessionData.user
+  };
 
   try {
     dispatch(nspRoomId, subscription, data, sessionData);
