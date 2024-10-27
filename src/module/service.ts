@@ -169,9 +169,10 @@ export function broadcastSessionDestroy(
 
   const subscription = formatPresenceSubscription(nspRoomId, SubscriptionType.LEAVE);
   const timestamp = new Date().toISOString();
+  const { clientId } = sessionData;
 
   const data = {
-    clientId: uid,
+    clientId,
     event: SubscriptionType.LEAVE,
     timestamp,
     user: sessionData.user

@@ -260,7 +260,7 @@ describe('service', () => {
         nspRoomId,
         presenceSubscription,
         expect.objectContaining({
-          clientId: '12345',
+          clientId: sessionData.clientId,
           event: SubscriptionType.LEAVE,
           timestamp: expect.any(String),
           user: sessionData.user
