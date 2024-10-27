@@ -259,7 +259,12 @@ describe('service', () => {
       expect(mockPublisher.dispatch).toHaveBeenCalledWith(
         nspRoomId,
         presenceSubscription,
-        expect.objectContaining({ uid }),
+        expect.objectContaining({
+          clientId: sessionData.clientId,
+          event: SubscriptionType.LEAVE,
+          timestamp: expect.any(String),
+          user: sessionData.user
+        }),
         sessionData
       );
     });

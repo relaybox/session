@@ -168,7 +168,15 @@ export function broadcastSessionDestroy(
   logger.debug(`Broadcasting session destroy`, { uid, nspRoomId });
 
   const subscription = formatPresenceSubscription(nspRoomId, SubscriptionType.LEAVE);
-  const data = { uid, message: 'Session disconnect' };
+  const timestamp = new Date().toISOString();
+  const { clientId, user } = sessionData;
+
+  const data = {
+    clientId,
+    event: SubscriptionType.LEAVE,
+    timestamp,
+    user
+  };
 
   try {
     dispatch(nspRoomId, subscription, data, sessionData);
