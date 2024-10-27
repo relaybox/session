@@ -36,10 +36,6 @@ export function formatUserSubscriptionAll(nspClientId: string): string {
   return `${nspClientId}:$:$:subscribe:all`;
 }
 
-export function getPublicClientId(clientId: string): string {
-  return clientId.split(':')[1];
-}
-
 export async function getCachedRooms(
   logger: Logger,
   redisClient: RedisClient,
