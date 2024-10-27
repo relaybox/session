@@ -2,6 +2,8 @@ import { Pool } from 'pg';
 import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
+  destroyRoomSubscriptions,
+  destroyUserSubscriptions,
   getActiveSession,
   getCachedRooms,
   getInactiveConnectionIds,
@@ -35,39 +37,41 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
       const activeSession = await getActiveSession(logger, redisClient, connectionId);
 
       if (!activeSession) {
-        const rooms = await getCachedRooms(logger, redisClient, connectionId);
+        // const rooms = await getCachedRooms(logger, redisClient, connectionId);
 
-        if (rooms && rooms.length > 0) {
-          await Promise.all(
-            rooms.map(async (nspRoomId) =>
-              Promise.all([
-                purgeCachedRooms(logger, redisClient, connectionId),
-                purgeSubscriptions(
-                  logger,
-                  redisClient,
-                  connectionId,
-                  nspRoomId,
-                  KeyNamespace.SUBSCRIPTIONS
-                ),
-                purgeSubscriptions(
-                  logger,
-                  redisClient,
-                  connectionId,
-                  nspRoomId,
-                  KeyNamespace.PRESENCE
-                ),
-                purgeSubscriptions(
-                  logger,
-                  redisClient,
-                  connectionId,
-                  nspRoomId,
-                  KeyNamespace.METRICS
-                )
-              ])
-            )
-          );
-        }
+        // if (rooms && rooms.length > 0) {
+        //   await Promise.all(
+        //     rooms.map(async (nspRoomId) =>
+        //       Promise.all([
+        //         purgeCachedRooms(logger, redisClient, connectionId),
+        //         purgeSubscriptions(
+        //           logger,
+        //           redisClient,
+        //           connectionId,
+        //           nspRoomId,
+        //           KeyNamespace.SUBSCRIPTIONS
+        //         ),
+        //         purgeSubscriptions(
+        //           logger,
+        //           redisClient,
+        //           connectionId,
+        //           nspRoomId,
+        //           KeyNamespace.PRESENCE
+        //         ),
+        //         purgeSubscriptions(
+        //           logger,
+        //           redisClient,
+        //           connectionId,
+        //           nspRoomId,
+        //           KeyNamespace.METRICS
+        //         )
+        //       ])
+        //     )
+        //   );
+        // }
 
+        await destroyRoomSubscriptions(logger, redisClient, connectionId);
+        await destroyUserSubscriptions(logger, redisClient, connectionId);
         await setSessionDisconnected(logger, pgClient, connectionId);
         await unsetSessionHeartbeat(logger, redisClient, connectionId);
 
