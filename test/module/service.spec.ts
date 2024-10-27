@@ -249,7 +249,7 @@ describe('service', () => {
 
   describe('broadcastSessionDestroy', () => {
     it('should broadcast session destroy event to nspRoomId', () => {
-      const uid = '12345:abcde';
+      const uid = '12345';
       const nspRoomId = 'nsp:room1';
       const sessionData = getMockSession({ uid });
       const presenceSubscription = formatPresenceSubscription(nspRoomId, SubscriptionType.LEAVE);
@@ -260,7 +260,7 @@ describe('service', () => {
         nspRoomId,
         presenceSubscription,
         expect.objectContaining({
-          clientId: 'abcde',
+          clientId: '12345',
           event: SubscriptionType.LEAVE,
           timestamp: expect.any(String),
           user: sessionData.user

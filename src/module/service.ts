@@ -175,7 +175,7 @@ export function broadcastSessionDestroy(
   const timestamp = new Date().toISOString();
 
   const data = {
-    clientId: getPublicClientId(uid),
+    clientId: uid,
     event: SubscriptionType.LEAVE,
     timestamp,
     user: sessionData.user
