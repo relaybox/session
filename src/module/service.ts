@@ -196,6 +196,23 @@ export async function removeActiveConnection(
   }
 }
 
+export async function deleteConnectionPresenceSets(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<void> {
+  logger.debug(`Destroying presence sets for connection`, { connectionId });
+
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
+
+  try {
+    await sessionRepository.deleteConnectionPresenceSets(redisClient, key);
+  } catch (err) {
+    logger.error(`Failed to destroy presence sets for connection`, { err });
+    throw err;
+  }
+}
+
 export function broadcastSessionDestroy(
   logger: Logger,
   uid: string,
@@ -631,7 +648,6 @@ export async function handleSessionSoftDelete(
 
     await Promise.all([
       removeActiveMember(logger, redisClient, uid, nspRoomId),
-      removeActiveConnection(logger, redisClient, connectionId, nspRoomId),
       broadcastSessionDestroy(logger, uid, nspRoomId, data)
     ]);
   } catch (err: unknown) {

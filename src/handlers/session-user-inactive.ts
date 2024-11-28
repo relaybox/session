@@ -1,7 +1,11 @@
 import { Pool } from 'pg';
 import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
-import { getConnectionPresenceSets, handleSessionSoftDelete } from '@/module/service';
+import {
+  deleteConnectionPresenceSets,
+  getConnectionPresenceSets,
+  handleSessionSoftDelete
+} from '@/module/service';
 import { SessionData, SocketConnectionEvent } from '@/module/types';
 
 const logger = getLogger('session-user-inactive');
@@ -33,6 +37,8 @@ export async function handler(
         )
       );
     }
+
+    await deleteConnectionPresenceSets(logger, redisClient, connectionId);
   } catch (err) {
     logger.error(`Session user destroy failed`, err);
     throw err;
