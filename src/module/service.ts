@@ -49,7 +49,7 @@ export async function getCachedRooms(
   return Object.keys(cachedRooms);
 }
 
-export async function getActivePresenceRooms(
+export async function getClientPresenceActiveRooms(
   logger: Logger,
   redisClient: RedisClient,
   appPid: string,
@@ -60,7 +60,7 @@ export async function getActivePresenceRooms(
   const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
 
   // const key = `${KeyPrefix.CLIENT}:${connectionId}:${KeySuffix.ROOMS}`;
-  const cachedRooms = await sessionRepository.getActivePresenceRooms(redisClient, key);
+  const cachedRooms = await sessionRepository.getClientPresenceActiveRooms(redisClient, key);
 
   return Object.keys(cachedRooms);
 }

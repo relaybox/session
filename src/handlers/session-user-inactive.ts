@@ -3,7 +3,7 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   broadcastSessionDestroy,
-  getActivePresenceRooms,
+  getClientPresenceActiveRooms,
   getCachedRooms,
   removeActiveMember,
   unsetClientPresenceActive
@@ -33,7 +33,7 @@ export async function handler(
 
   try {
     // const rooms = await getCachedRooms(logger, redisClient, connectionId);
-    const rooms = await getActivePresenceRooms(logger, redisClient, appPid, uid);
+    const rooms = await getClientPresenceActiveRooms(logger, redisClient, appPid, uid);
 
     console.log('PRESENCE ROOMS:', rooms);
 

@@ -8,7 +8,7 @@ export async function getCachedRooms(
   return redisClient.hGetAll(key);
 }
 
-export async function getActivePresenceRooms(
+export async function getClientPresenceActiveRooms(
   redisClient: RedisClient,
   key: string
 ): Promise<{ [x: string]: string }> {
