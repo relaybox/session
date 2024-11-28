@@ -49,6 +49,22 @@ export async function getCachedRooms(
   return Object.keys(cachedRooms);
 }
 
+export async function getActivePresenceRooms(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  uid: string
+): Promise<string[] | null> {
+  logger.debug(`Getting active presence rooms`, { uid });
+
+  const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
+
+  // const key = `${KeyPrefix.CLIENT}:${connectionId}:${KeySuffix.ROOMS}`;
+  const cachedRooms = await sessionRepository.getActivePresenceRooms(redisClient, key);
+
+  return Object.keys(cachedRooms);
+}
+
 export async function getCachedUsers(
   logger: Logger,
   redisClient: RedisClient,
@@ -155,6 +171,27 @@ export async function removeActiveMember(
     ]);
   } catch (err) {
     logger.error(`Failed to remove active member`, { uid, nspRoomId, err });
+    throw err;
+  }
+}
+
+export async function unsetClientPresenceActive(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  uid: string,
+  nspRoomId: string
+): Promise<void> {
+  logger.debug(`Unsetting client presence active`, { uid, nspRoomId });
+
+  const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
+
+  console.log(2, key);
+
+  try {
+    await sessionRepository.unsetPresenceRoom(redisClient, key, nspRoomId);
+  } catch (err) {
+    logger.error(`Failed to unset client presence active`, { uid, nspRoomId, err });
     throw err;
   }
 }

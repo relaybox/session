@@ -6,7 +6,8 @@ export enum KeyPrefix {
   SESSION = 'session',
   CONNECTION = 'connection',
   HEARTBEAT = 'heartbeat',
-  AUTH = 'auth'
+  AUTH = 'auth',
+  CLIENT = 'client'
 }
 
 export enum KeyNamespace {

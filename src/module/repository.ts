@@ -8,6 +8,21 @@ export async function getCachedRooms(
   return redisClient.hGetAll(key);
 }
 
+export async function getActivePresenceRooms(
+  redisClient: RedisClient,
+  key: string
+): Promise<{ [x: string]: string }> {
+  return redisClient.hGetAll(key);
+}
+
+export async function unsetPresenceRoom(
+  redisClient: RedisClient,
+  key: string,
+  nspRoomId: string
+): Promise<number> {
+  return redisClient.hDel(key, nspRoomId);
+}
+
 export function getCachedUsers(
   redisClient: RedisClient,
   key: string
