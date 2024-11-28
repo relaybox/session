@@ -15,7 +15,7 @@ export async function getClientPresenceActiveRooms(
   return redisClient.hGetAll(key);
 }
 
-export async function unsetPresenceRoom(
+export async function unsetClientPresenceActive(
   redisClient: RedisClient,
   key: string,
   nspRoomId: string
