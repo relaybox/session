@@ -188,8 +188,6 @@ export async function unsetClientPresenceActive(
 
   const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
 
-  console.log(2, key);
-
   try {
     await sessionRepository.unsetPresenceRoom(redisClient, key, nspRoomId);
   } catch (err) {
