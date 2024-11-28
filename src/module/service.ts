@@ -59,10 +59,12 @@ export async function getClientPresenceActiveRooms(
 
   const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
 
-  // const key = `${KeyPrefix.CLIENT}:${connectionId}:${KeySuffix.ROOMS}`;
-  const cachedRooms = await sessionRepository.getClientPresenceActiveRooms(redisClient, key);
+  const clientPresenceActiveRooms = await sessionRepository.getClientPresenceActiveRooms(
+    redisClient,
+    key
+  );
 
-  return Object.keys(cachedRooms);
+  return Object.keys(clientPresenceActiveRooms);
 }
 
 export async function getCachedUsers(
