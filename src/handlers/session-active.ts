@@ -6,8 +6,6 @@ import { SessionData, SocketConnectionEvent } from '@/module/types';
 
 const logger = getLogger('session-active');
 
-// FORCE DEPLOY
-
 export async function handler(
   pgPool: Pool,
   redisClient: RedisClient,
