@@ -8,21 +8,6 @@ export async function getCachedRooms(
   return redisClient.hGetAll(key);
 }
 
-export async function getClientPresenceActiveRooms(
-  redisClient: RedisClient,
-  key: string
-): Promise<{ [x: string]: string }> {
-  return redisClient.hGetAll(key);
-}
-
-export async function unsetClientPresenceActive(
-  redisClient: RedisClient,
-  key: string,
-  nspRoomId: string
-): Promise<number> {
-  return redisClient.hDel(key, nspRoomId);
-}
-
 export function getCachedUsers(
   redisClient: RedisClient,
   key: string
@@ -59,6 +44,22 @@ export function removeActiveMember(
   clientId: string
 ): Promise<number> {
   return redisClient.hDel(key, clientId);
+}
+
+export function removeActiveConnection(
+  redisClient: RedisClient,
+  key: string,
+  nspRoomId: string
+): Promise<number> {
+  return redisClient.hDel(key, nspRoomId);
+}
+
+export function getActiveMember(
+  redisClient: RedisClient,
+  key: string,
+  clientId: string
+): Promise<string | undefined> {
+  return redisClient.hGet(key, clientId);
 }
 
 export async function shiftActiveMember(
@@ -147,4 +148,11 @@ export async function deleteAuthUser(
   clientId: string
 ): Promise<number> {
   return redisClient.hDel(key, clientId);
+}
+
+export function getConnectionPresenceSets(
+  redisClient: RedisClient,
+  key: string
+): Promise<{ [x: string]: string }> {
+  return redisClient.hGetAll(key);
 }

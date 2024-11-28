@@ -7,6 +7,7 @@ import {
   KeyPrefix,
   KeySuffix,
   SessionData,
+  SocketConnectionEvent,
   SubscriptionType
 } from './types';
 import { RedisClient } from '@/lib/redis';
@@ -47,24 +48,6 @@ export async function getCachedRooms(
   const cachedRooms = await sessionRepository.getCachedRooms(redisClient, key);
 
   return Object.keys(cachedRooms);
-}
-
-export async function getClientPresenceActiveRooms(
-  logger: Logger,
-  redisClient: RedisClient,
-  appPid: string,
-  uid: string
-): Promise<string[] | null> {
-  logger.debug(`Getting active presence rooms`, { uid });
-
-  const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
-
-  const clientPresenceActiveRooms = await sessionRepository.getClientPresenceActiveRooms(
-    redisClient,
-    key
-  );
-
-  return Object.keys(clientPresenceActiveRooms);
 }
 
 export async function getCachedUsers(
@@ -156,6 +139,24 @@ export async function purgeCachedUsers(
   }
 }
 
+export async function getActiveMember(
+  logger: Logger,
+  redisClient: RedisClient,
+  uid: string,
+  nspRoomId: string
+): Promise<string | undefined> {
+  logger.debug(`Getting active member`, { uid, nspRoomId });
+
+  const keyPrefix = formatKey([KeyPrefix.PRESENCE, nspRoomId, KeySuffix.MEMBERS]);
+
+  try {
+    return await sessionRepository.getActiveMember(redisClient, keyPrefix, uid);
+  } catch (err) {
+    logger.error(`Failed to get active member`, { uid, nspRoomId, err });
+    throw err;
+  }
+}
+
 export async function removeActiveMember(
   logger: Logger,
   redisClient: RedisClient,
@@ -177,21 +178,20 @@ export async function removeActiveMember(
   }
 }
 
-export async function unsetClientPresenceActive(
+export async function removeActiveConnection(
   logger: Logger,
   redisClient: RedisClient,
-  appPid: string,
-  uid: string,
+  connectionId: string,
   nspRoomId: string
 ): Promise<void> {
-  logger.debug(`Unsetting client presence active`, { uid, nspRoomId });
+  logger.debug(`Removing active connection`, { connectionId });
 
-  const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
 
   try {
-    await sessionRepository.unsetClientPresenceActive(redisClient, key, nspRoomId);
+    await sessionRepository.removeActiveConnection(redisClient, key, nspRoomId);
   } catch (err) {
-    logger.error(`Failed to unset client presence active`, { uid, nspRoomId, err });
+    logger.error(`Failed to remove active connection`, { err });
     throw err;
   }
 }
@@ -582,5 +582,60 @@ export async function destroyUserSubscriptions(
         ])
       )
     );
+  }
+}
+
+export async function getConnectionPresenceSets(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<string[]> {
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
+
+  try {
+    const connectionPresence = await sessionRepository.getConnectionPresenceSets(redisClient, key);
+
+    return Object.keys(connectionPresence);
+  } catch (err) {
+    logger.error(`Failed to get connection presence`, { connectionId, err });
+    throw err;
+  }
+}
+
+export async function handleSessionSoftDelete(
+  logger: Logger,
+  redisClient: RedisClient,
+  nspRoomId: string,
+  uid: string,
+  connectionId: string,
+  data: SessionData & Partial<SocketConnectionEvent>
+): Promise<void> {
+  logger.debug(`Soft deleting session`, uid);
+
+  try {
+    const activeMember = await getActiveMember(logger, redisClient, uid, nspRoomId);
+
+    if (activeMember) {
+      const parsedActivemember = JSON.parse(activeMember);
+
+      /**
+       * A different connectionId attached to the same clientId means the client
+       * rejoined the same presence set during the session soft delete timout.
+       * Return early to maintain the maintain the most up to date presence set
+       */
+      if (parsedActivemember.connectionId !== connectionId) {
+        logger.debug(`Session soft delete ignored, active member is from different connection`);
+        return;
+      }
+    }
+
+    await Promise.all([
+      removeActiveMember(logger, redisClient, uid, nspRoomId),
+      removeActiveConnection(logger, redisClient, connectionId, nspRoomId),
+      broadcastSessionDestroy(logger, uid, nspRoomId, data)
+    ]);
+  } catch (err: unknown) {
+    logger.error(`Failed to soft delete session`, { err });
+    throw err;
   }
 }
