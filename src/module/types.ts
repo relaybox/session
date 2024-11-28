@@ -1,3 +1,6 @@
+import { RedisClient } from '@/lib/redis';
+import { Pool } from 'pg';
+
 export enum KeyPrefix {
   USER = 'user',
   APPLICATION = 'application',
@@ -6,7 +9,8 @@ export enum KeyPrefix {
   SESSION = 'session',
   CONNECTION = 'connection',
   HEARTBEAT = 'heartbeat',
-  AUTH = 'auth'
+  AUTH = 'auth',
+  CLIENT = 'client'
 }
 
 export enum KeyNamespace {
@@ -85,4 +89,9 @@ export enum SocketConnectionEventType {
 export interface SocketConnectionEvent {
   connectionEventType: SocketConnectionEventType;
   connectionEventTimestamp: Date;
+}
+
+export interface Services {
+  redisClient: RedisClient;
+  pgPool: Pool;
 }
