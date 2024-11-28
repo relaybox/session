@@ -4,7 +4,6 @@ import { getLogger } from '@/util/logger.util';
 import {
   broadcastSessionDestroy,
   getClientPresenceActiveRooms,
-  getCachedRooms,
   removeActiveMember,
   unsetClientPresenceActive
 } from '@/module/service';
@@ -32,10 +31,7 @@ export async function handler(
   logger.info(`Processing user inactive event for ${uid}`, { connectionId });
 
   try {
-    // const rooms = await getCachedRooms(logger, redisClient, connectionId);
     const rooms = await getClientPresenceActiveRooms(logger, redisClient, appPid, uid);
-
-    console.log('PRESENCE ROOMS:', rooms);
 
     if (rooms && rooms.length > 0) {
       await Promise.all(
