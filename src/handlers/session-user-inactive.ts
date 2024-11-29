@@ -33,7 +33,7 @@ export async function handler(
     if (presenceSets.length > 0) {
       await Promise.all(
         presenceSets.map(async (nspRoomId) =>
-          handleSessionSoftDelete(logger, redisClient, nspRoomId, uid, connectionId, data)
+          handleSessionSoftDelete(logger, redisClient, uid, connectionId, nspRoomId, data)
         )
       );
     }

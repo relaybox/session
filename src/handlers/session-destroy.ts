@@ -3,6 +3,7 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   broadcastAuthUserDisconnectEvent,
+  deleteConnectionPresenceSets,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
   getActiveSession,
@@ -39,10 +40,13 @@ export async function handler(
       connectionId
     });
 
-    await destroyRoomSubscriptions(logger, redisClient, connectionId);
-    await destroyUserSubscriptions(logger, redisClient, connectionId);
-    await setSessionDisconnected(logger, pgClient, connectionId);
-    await unsetSessionHeartbeat(logger, redisClient, connectionId);
+    await Promise.all([
+      destroyRoomSubscriptions(logger, redisClient, connectionId),
+      destroyUserSubscriptions(logger, redisClient, connectionId),
+      setSessionDisconnected(logger, pgClient, connectionId),
+      unsetSessionHeartbeat(logger, redisClient, connectionId),
+      deleteConnectionPresenceSets(logger, redisClient, connectionId)
+    ]);
 
     if (user) {
       logger.debug(`Auth user attached to session, checking if online`, { uid, connectionId });

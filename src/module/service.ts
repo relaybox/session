@@ -201,14 +201,14 @@ export async function deleteConnectionPresenceSets(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<void> {
-  logger.debug(`Destroying presence sets for connection`, { connectionId });
+  logger.debug(`Deleting presence sets for connection`, { connectionId });
 
   const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
 
   try {
     await sessionRepository.deleteConnectionPresenceSets(redisClient, key);
   } catch (err) {
-    logger.error(`Failed to destroy presence sets for connection`, { err });
+    logger.error(`Failed to delete presence sets for connection`, { err });
     throw err;
   }
 }
@@ -622,9 +622,9 @@ export async function getConnectionPresenceSets(
 export async function handleSessionSoftDelete(
   logger: Logger,
   redisClient: RedisClient,
-  nspRoomId: string,
   uid: string,
   connectionId: string,
+  nspRoomId: string,
   data: SessionData & Partial<SocketConnectionEvent>
 ): Promise<void> {
   logger.debug(`Soft deleting session`, uid);
