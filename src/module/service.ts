@@ -1,5 +1,6 @@
 import { Logger } from 'winston';
-import * as sessionRepository from './repository';
+import * as repository from './repository';
+import * as db from './db';
 import {
   AuthUser,
   AuthUserEvent,
@@ -12,7 +13,6 @@ import {
 import { RedisClient } from '@/lib/redis';
 import { dispatch } from '@/lib/publisher';
 import { PoolClient } from 'pg';
-import * as sessionDb from './db';
 
 export const PLATFORM_RESERVED_NAMESPACE = '$';
 export const WS_IDLE_TIMEOUT_MS = Number(process.env.WS_IDLE_TIMEOUT_MS) || 0;
@@ -44,27 +44,9 @@ export async function getCachedRooms(
   logger.debug(`Getting cached rooms`, { connectionId });
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeySuffix.ROOMS}`;
-  const cachedRooms = await sessionRepository.getCachedRooms(redisClient, key);
+  const cachedRooms = await repository.getCachedRooms(redisClient, key);
 
   return Object.keys(cachedRooms);
-}
-
-export async function getClientPresenceActiveRooms(
-  logger: Logger,
-  redisClient: RedisClient,
-  appPid: string,
-  uid: string
-): Promise<string[] | null> {
-  logger.debug(`Getting active presence rooms`, { uid });
-
-  const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
-
-  const clientPresenceActiveRooms = await sessionRepository.getClientPresenceActiveRooms(
-    redisClient,
-    key
-  );
-
-  return Object.keys(clientPresenceActiveRooms);
 }
 
 export async function getCachedUsers(
@@ -75,7 +57,7 @@ export async function getCachedUsers(
   logger.debug(`Getting cached users`, { connectionId });
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeyNamespace.USERS}`;
-  const cachedUsers = await sessionRepository.getCachedUsers(redisClient, key);
+  const cachedUsers = await repository.getCachedUsers(redisClient, key);
 
   return Object.keys(cachedUsers);
 }
@@ -89,7 +71,7 @@ export function purgeCachedRooms(
 
   const key = `${KeyPrefix.CONNECTION}:${connectionId}:${KeySuffix.ROOMS}`;
 
-  return sessionRepository.purgeCachedRooms(redisClient, key);
+  return repository.purgeCachedRooms(redisClient, key);
 }
 
 export async function purgeSubscriptions(
@@ -108,11 +90,11 @@ export async function purgeSubscriptions(
   const key = formatKey([KeyPrefix.CONNECTION, connectionId, keyNamespace, nspRoomId]);
 
   try {
-    const subscriptions = await sessionRepository.getAllSubscriptions(redisClient, key);
+    const subscriptions = await repository.getAllSubscriptions(redisClient, key);
 
     await Promise.all(
       Object.keys(subscriptions).map(async (subscription) =>
-        sessionRepository.deleteSubscription(redisClient, key, subscription)
+        repository.deleteSubscription(redisClient, key, subscription)
       )
     );
   } catch (err) {
@@ -132,7 +114,7 @@ export async function purgeUserSubscriptions(
   const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeyNamespace.USERS, clientId]);
 
   try {
-    await sessionRepository.deleteHash(redisClient, key);
+    await repository.deleteHash(redisClient, key);
   } catch (err) {
     logger.error(`Failed to delete user subscriptions`, { clientId, key, err });
     throw err;
@@ -149,9 +131,27 @@ export async function purgeCachedUsers(
   const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeyNamespace.USERS]);
 
   try {
-    await sessionRepository.deleteHash(redisClient, key);
+    await repository.deleteHash(redisClient, key);
   } catch (err) {
     logger.error(`Failed to delete users`, { connectionId, key, err });
+    throw err;
+  }
+}
+
+export async function getActiveMember(
+  logger: Logger,
+  redisClient: RedisClient,
+  uid: string,
+  nspRoomId: string
+): Promise<string | undefined> {
+  logger.debug(`Getting active member`, { uid, nspRoomId });
+
+  const keyPrefix = formatKey([KeyPrefix.PRESENCE, nspRoomId, KeySuffix.MEMBERS]);
+
+  try {
+    return await repository.getActiveMember(redisClient, keyPrefix, uid);
+  } catch (err) {
+    logger.error(`Failed to get active member`, { uid, nspRoomId, err });
     throw err;
   }
 }
@@ -159,39 +159,37 @@ export async function purgeCachedUsers(
 export async function removeActiveMember(
   logger: Logger,
   redisClient: RedisClient,
-  uid: string,
+  connectionId: string,
   nspRoomId: string
 ): Promise<void> {
-  logger.debug(`Removing active member`, { uid, nspRoomId });
+  logger.debug(`Removing active member`, { connectionId, nspRoomId });
 
   const keyPrefix = formatKey([KeyPrefix.PRESENCE, nspRoomId]);
 
   try {
     await Promise.all([
-      sessionRepository.removeActiveMember(redisClient, `${keyPrefix}:${KeySuffix.MEMBERS}`, uid),
-      sessionRepository.shiftActiveMember(redisClient, `${keyPrefix}:${KeySuffix.INDEX}`, uid)
+      repository.removeActiveMember(redisClient, `${keyPrefix}:${KeySuffix.MEMBERS}`, connectionId),
+      repository.shiftActiveMember(redisClient, `${keyPrefix}:${KeySuffix.INDEX}`, connectionId)
     ]);
   } catch (err) {
-    logger.error(`Failed to remove active member`, { uid, nspRoomId, err });
+    logger.error(`Failed to remove active member`, { connectionId, nspRoomId, err });
     throw err;
   }
 }
 
-export async function unsetClientPresenceActive(
+export async function deleteConnectionPresenceSets(
   logger: Logger,
   redisClient: RedisClient,
-  appPid: string,
-  uid: string,
-  nspRoomId: string
+  connectionId: string
 ): Promise<void> {
-  logger.debug(`Unsetting client presence active`, { uid, nspRoomId });
+  logger.debug(`Deleting presence sets for connection`, { connectionId });
 
-  const key = formatKey([KeyPrefix.CLIENT, appPid, uid, KeyNamespace.PRESENCE]);
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
 
   try {
-    await sessionRepository.unsetClientPresenceActive(redisClient, key, nspRoomId);
+    await repository.deleteConnectionPresenceSets(redisClient, key);
   } catch (err) {
-    logger.error(`Failed to unset client presence active`, { uid, nspRoomId, err });
+    logger.error(`Failed to delete presence sets for connection`, { err });
     throw err;
   }
 }
@@ -206,9 +204,10 @@ export function broadcastSessionDestroy(
 
   const subscription = formatPresenceSubscription(nspRoomId, SubscriptionType.LEAVE);
   const timestamp = new Date().toISOString();
-  const { clientId, user } = sessionData;
+  const { connectionId, clientId, user } = sessionData;
 
   const data = {
+    connectionId,
     clientId,
     event: SubscriptionType.LEAVE,
     timestamp,
@@ -235,7 +234,7 @@ export async function setSessionActive(
   const sessionData = JSON.stringify(data);
 
   try {
-    await sessionRepository.setSessionActive(
+    await repository.setSessionActive(
       redisClient,
       sessionActiveKey,
       sessionData,
@@ -256,7 +255,7 @@ export function getActiveSession(
 
   const key = formatKey([KeyPrefix.SESSION, connectionId, KeySuffix.ACTIVE]);
 
-  return sessionRepository.getActiveSession(redisClient, key);
+  return repository.getActiveSession(redisClient, key);
 }
 
 export async function getInactiveConnectionIds(
@@ -269,7 +268,7 @@ export async function getInactiveConnectionIds(
     const max = new Date().getTime() - ACTIVE_SESSION_HEARTBEAT_SCORE_MAX;
     const key = formatKey([KeyPrefix.HEARTBEAT, KeySuffix.KEEP_ALIVE]);
 
-    const inactivConnectionIds = await sessionRepository.getInactiveConnectionIds(
+    const inactivConnectionIds = await repository.getInactiveConnectionIds(
       redisClient,
       key,
       max,
@@ -297,7 +296,7 @@ export async function setSessionHeartbeat(
   const unixTime = new Date(timestamp).getTime();
 
   try {
-    await sessionRepository.setSessionHeartbeat(redisClient, key, connectionId, unixTime);
+    await repository.setSessionHeartbeat(redisClient, key, connectionId, unixTime);
   } catch (err) {
     logger.error(`Failed to set session active`, { err });
     throw err;
@@ -314,7 +313,7 @@ export async function unsetSessionHeartbeat(
   const key = formatKey([KeyPrefix.HEARTBEAT, KeySuffix.KEEP_ALIVE]);
 
   try {
-    await sessionRepository.unsetSessionHeartbeat(redisClient, key, connectionId);
+    await repository.unsetSessionHeartbeat(redisClient, key, connectionId);
   } catch (err) {
     logger.error(`Failed to set session active`, { err });
     throw err;
@@ -329,7 +328,7 @@ export async function setSessionDisconnected(
   logger.debug(`Setting session as disconnected ${connectionId}`, { connectionId });
 
   try {
-    await sessionDb.setSessionDisconnected(pgClient, connectionId);
+    await db.setSessionDisconnected(pgClient, connectionId);
   } catch (err) {
     logger.error(`Session disconnection failed`, err);
     throw err;
@@ -345,7 +344,7 @@ export async function saveSessionData(
   logger.debug(`Saving session data`, { appId, sessionData });
 
   try {
-    await sessionDb.saveSessionData(pgClient, appId, sessionData);
+    await db.saveSessionData(pgClient, appId, sessionData);
   } catch (err: any) {
     logger.error(`Failed to save session data`, { err });
     throw err;
@@ -360,7 +359,7 @@ export async function getAppId(
   logger.debug(`Getting app id for ${appPid}`);
 
   try {
-    const { rows: applications } = await sessionDb.getApplicationIdByAppPid(pgClient, appPid);
+    const { rows: applications } = await db.getApplicationIdByAppPid(pgClient, appPid);
     return applications[0].id;
   } catch (err: any) {
     logger.error(`Failed to get appId`, { err });
@@ -377,7 +376,7 @@ export async function getConnectionEventId(
   logger.debug(`Getting connection event id for ${connectionId}`, { connectionId, socketId });
 
   try {
-    const { rows } = await sessionDb.getConnectionEventId(pgClient, connectionId, socketId);
+    const { rows } = await db.getConnectionEventId(pgClient, connectionId, socketId);
     return rows[0]?.id;
   } catch (err: any) {
     logger.error(`Failed to get connection id`, { connectionId, socketId, err });
@@ -391,10 +390,10 @@ export async function saveSocketConnectionEvent(
   appId: string,
   data: any
 ): Promise<void> {
-  logger.debug(`Saving scket connection event`, { appId, data });
+  logger.debug(`Saving socket connection event`, { appId, data });
 
   try {
-    await sessionDb.saveConnectionEvent(pgClient, appId, data);
+    await db.saveConnectionEvent(pgClient, appId, data);
   } catch (err: any) {
     logger.error(`Failed to process connect event`, { err });
     throw err;
@@ -409,7 +408,7 @@ export async function setAuthUserOffline(
   logger.debug(`Setting auth user offline`, { uid });
 
   try {
-    await sessionDb.setAuthUserOffline(pgClient, uid);
+    await db.setAuthUserOffline(pgClient, uid);
   } catch (err: any) {
     logger.error(`Failed to set auth user offline`, { err });
     throw err;
@@ -424,7 +423,7 @@ export async function setAuthUserOnline(
   logger.debug(`Setting auth user online`, { uid });
 
   try {
-    await sessionDb.setAuthUserOnline(pgClient, uid);
+    await db.setAuthUserOnline(pgClient, uid);
   } catch (err: any) {
     logger.error(`Failed to set auth user online`, { err });
     throw err;
@@ -440,11 +439,30 @@ export async function addAuthUser(
   logger.debug(`Adding auth user`, { user });
 
   try {
-    const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
+    const key = formatKey([KeyPrefix.AUTH, appPid, KeySuffix.ONLINE]);
 
-    await sessionRepository.addAuthUser(redisClient, key, user);
+    await repository.addAuthUser(redisClient, key, user);
   } catch (err: any) {
     logger.error(`Failed to add auth user`, { err });
+    throw err;
+  }
+}
+
+export async function addAuthUserConnection(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  connectionId: string,
+  clientId: string
+): Promise<void> {
+  logger.debug(`Adding auth user connection`, { clientId, connectionId });
+
+  try {
+    const key = formatKey([KeyPrefix.CLIENT, appPid, clientId, KeySuffix.CONNECTIONS]);
+
+    await repository.addAuthUserConnection(redisClient, key, connectionId);
+  } catch (err: any) {
+    logger.error(`Failed to add auth user connection`, { err });
     throw err;
   }
 }
@@ -461,7 +479,7 @@ export async function getAuthUser(
     const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
     const { clientId } = user;
 
-    const authUser = await sessionRepository.getAuthUser(redisClient, key, clientId);
+    const authUser = await repository.getAuthUser(redisClient, key, clientId);
 
     return authUser ? JSON.parse(authUser) : null;
   } catch (err: any) {
@@ -482,9 +500,57 @@ export async function deleteAuthUser(
     const key = formatKey([KeyPrefix.AUTH, appPid, 'online']);
     const { clientId } = user;
 
-    await sessionRepository.deleteAuthUser(redisClient, key, clientId);
+    await repository.deleteAuthUser(redisClient, key, clientId);
   } catch (err: any) {
     logger.error(`Failed to add auth user`, { err });
+    throw err;
+  }
+}
+
+export async function deleteAuthUserConnection(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  clientId: string,
+  connectionId: string
+): Promise<number> {
+  logger.debug(`Deleting auth user connection`, { appPid, clientId });
+
+  try {
+    const key = formatKey([KeyPrefix.CLIENT, appPid, clientId, KeySuffix.CONNECTIONS]);
+
+    const multi = redisClient.multi();
+
+    await repository.deleteAuthUserConnection(multi, key, connectionId);
+    await repository.getAuthUserConnectionCount(multi, key);
+
+    const [_, remainingAuthUserConnections] = await multi.exec();
+
+    return remainingAuthUserConnections as number;
+  } catch (err: any) {
+    logger.error(`Failed to delete auth user connection`, { err });
+    throw err;
+  }
+}
+
+export async function deleteAuthUserConnections(
+  logger: Logger,
+  redisClient: RedisClient,
+  appPid: string,
+  clientId?: string
+): Promise<void> {
+  logger.debug(`Deleting auth user connections`, { appPid, clientId });
+
+  if (!clientId) {
+    return;
+  }
+
+  try {
+    const key = formatKey([KeyPrefix.CLIENT, appPid, clientId, KeySuffix.CONNECTIONS]);
+
+    await repository.deleteAuthUserConnections(redisClient, key);
+  } catch (err: any) {
+    logger.error(`Failed to delete auth user connections`, { err });
     throw err;
   }
 }
@@ -582,5 +648,24 @@ export async function destroyUserSubscriptions(
         ])
       )
     );
+  }
+}
+
+export async function getConnectionPresenceSets(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string
+): Promise<string[]> {
+  logger.debug(`Getting cached presence sets for connection`);
+
+  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
+
+  try {
+    const connectionPresence = await repository.getConnectionPresenceSets(redisClient, key);
+
+    return Object.keys(connectionPresence);
+  } catch (err) {
+    logger.error(`Failed to get connection presence`, { connectionId, err });
+    throw err;
   }
 }

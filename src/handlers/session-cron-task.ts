@@ -2,17 +2,14 @@ import { Pool } from 'pg';
 import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
+  deleteConnectionPresenceSets,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
   getActiveSession,
-  getCachedRooms,
   getInactiveConnectionIds,
-  purgeCachedRooms,
-  purgeSubscriptions,
   setSessionDisconnected,
   unsetSessionHeartbeat
 } from '@/module/service';
-import { KeyNamespace } from '@/module/types';
 
 const logger = getLogger('session-cron');
 
@@ -37,10 +34,13 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
       const activeSession = await getActiveSession(logger, redisClient, connectionId);
 
       if (!activeSession) {
-        await destroyRoomSubscriptions(logger, redisClient, connectionId);
-        await destroyUserSubscriptions(logger, redisClient, connectionId);
-        await setSessionDisconnected(logger, pgClient, connectionId);
-        await unsetSessionHeartbeat(logger, redisClient, connectionId);
+        await Promise.all([
+          destroyRoomSubscriptions(logger, redisClient, connectionId),
+          destroyUserSubscriptions(logger, redisClient, connectionId),
+          setSessionDisconnected(logger, pgClient, connectionId),
+          unsetSessionHeartbeat(logger, redisClient, connectionId),
+          deleteConnectionPresenceSets(logger, redisClient, connectionId)
+        ]);
 
         logger.debug(`Connection clean up complete`, { connectionId });
       }

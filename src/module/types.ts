@@ -29,7 +29,10 @@ export enum KeySuffix {
   MEMBERS = 'members',
   ACTIVE = 'active',
   DATA = 'data',
-  KEEP_ALIVE = 'keepalive'
+  KEEP_ALIVE = 'keepalive',
+  PRESENCE_SETS = 'presence-sets',
+  CONNECTIONS = 'connections',
+  ONLINE = 'online'
 }
 
 export enum SubscriptionType {
