@@ -1,5 +1,6 @@
-import { RedisClient } from '@/lib/redis';
+import { RedisClient, RedisClientMultiReturnType } from '@/lib/redis';
 import { AuthUser } from './types';
+import { RedisClientType } from 'redis';
 
 export async function getCachedRooms(
   redisClient: RedisClient,
@@ -134,6 +135,15 @@ export async function addAuthUser(
   return redisClient.hSet(key, user.clientId, JSON.stringify(user));
 }
 
+export async function addAuthUserConnection(
+  redisClient: RedisClient,
+  key: string,
+  connectionId: string
+): Promise<number> {
+  const now = new Date().getTime();
+  return redisClient.hSet(key, connectionId, now);
+}
+
 export async function getAuthUser(
   redisClient: RedisClient,
   key: string,
@@ -148,6 +158,25 @@ export async function deleteAuthUser(
   clientId: string
 ): Promise<number> {
   return redisClient.hDel(key, clientId);
+}
+
+export async function deleteAuthUserConnection(
+  redisClient: RedisClient | RedisClientMultiReturnType,
+  key: string,
+  connectionId: string
+): Promise<number | RedisClientMultiReturnType> {
+  return redisClient.hDel(key, connectionId);
+}
+
+export async function deleteAuthUserConnections(
+  redisClient: RedisClient | RedisClientMultiReturnType,
+  key: string
+): Promise<number | RedisClientMultiReturnType> {
+  return redisClient.del(key);
+}
+
+export function getAuthUserConnectionCount(redisClient: any, key: string): Promise<number> {
+  return redisClient.hLen(key);
 }
 
 export function getConnectionPresenceSets(

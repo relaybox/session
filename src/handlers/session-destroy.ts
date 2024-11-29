@@ -3,6 +3,7 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   broadcastAuthUserDisconnectEvent,
+  deleteAuthUserConnections,
   deleteConnectionPresenceSets,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
@@ -56,6 +57,7 @@ export async function handler(
       if (!userIsOnline) {
         logger.debug(`User is not online, setting offline`, { uid, connectionId });
         await setAuthUserOffline(logger, pgClient, user.id);
+        await deleteAuthUserConnections(logger, redisClient, appPid, user?.clientId);
         broadcastAuthUserDisconnectEvent(logger, user, data);
       }
     }

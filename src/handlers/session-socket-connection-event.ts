@@ -3,9 +3,11 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   addAuthUser,
+  addAuthUserConnection,
   broadcastAuthUserConnectEvent,
   broadcastAuthUserDisconnectEvent,
   deleteAuthUser,
+  deleteAuthUserConnection,
   getAppId,
   getConnectionEventId,
   saveSessionData,
@@ -44,18 +46,36 @@ export async function handler(
       );
 
       if (!socketConnectionEventId) {
+        logger.debug(`Socket connection event not found, exiting.`);
         return;
       }
 
       if (user) {
-        await deleteAuthUser(logger, redisClient, appPid, user);
-        broadcastAuthUserDisconnectEvent(logger, user, data);
+        /**
+         * Delete current connection and return any remaining connections for the user.
+         * If no remaining active connections, continue with deleting the user.
+         * If active connections are found it means that the user is still active
+         * following multiple sessions being opened
+         */
+        const remainingAuthUserConnections = await deleteAuthUserConnection(
+          logger,
+          redisClient,
+          appPid,
+          user.clientId,
+          connectionId
+        );
+
+        if (!remainingAuthUserConnections) {
+          await deleteAuthUser(logger, redisClient, appPid, user);
+          broadcastAuthUserDisconnectEvent(logger, user, data);
+        }
       }
     }
 
     if (connectionEventType === SocketConnectionEventType.CONNECT && user) {
       await setAuthUserOnline(logger, pgClient, user.id);
       await addAuthUser(logger, redisClient, appPid, user);
+      await addAuthUserConnection(logger, redisClient, appPid, connectionId, user.clientId);
       broadcastAuthUserConnectEvent(logger, user, data);
     }
 

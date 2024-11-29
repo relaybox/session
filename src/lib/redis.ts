@@ -19,6 +19,7 @@ const REDIS_TLS_DISABLED = process.env.REDIS_TLS_DISABLED === 'true';
 const REDIS_AUTH_TOKEN = getRedisAuthToken();
 
 export type RedisClient = RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
+export type RedisClientMultiReturnType = ReturnType<RedisClientType<any>['multi']>;
 
 function getCertificate(): Buffer | undefined {
   try {
