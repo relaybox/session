@@ -57,7 +57,7 @@ export async function handler(
          * If active connections are found it means that the user is still active
          * following multiple sessions being opened
          */
-        const remainingAuthUserConnections = await deleteAuthUserConnection(
+        const remainingAuthUserConnectionsCount = await deleteAuthUserConnection(
           logger,
           redisClient,
           appPid,
@@ -65,7 +65,7 @@ export async function handler(
           connectionId
         );
 
-        if (!remainingAuthUserConnections) {
+        if (remainingAuthUserConnectionsCount === 0) {
           await deleteAuthUser(logger, redisClient, appPid, user);
           broadcastAuthUserDisconnectEvent(logger, user, data);
         }

@@ -12,12 +12,10 @@ import { SessionData, SocketConnectionEvent } from '@/module/types';
 const logger = getLogger('session-user-inactive');
 
 /**
- * Soft delete a user session. Inactivity timeout is 5000ms. This will trigger...
- * - Remove member from active presence sets
- * - Broadcast session destroy message to clients subscibed to presence.leave for rooms associated with user
- *
- * This will not...
- * - Destroy room, presence or user action subscriptions (see session-destroy)
+ * Soft delete a user session. Inactivity timeout is 5000ms (Job added from core).
+ * Removes member from active presence sets and
+ * broadcasts session destroy message to clients subscibed to `presence.leave` for rooms associated with user.
+ * This will not destroy room, presence or user action subscriptions (see session-destroy)
  */
 export async function handler(
   pgPool: Pool,

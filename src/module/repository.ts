@@ -47,14 +47,6 @@ export function removeActiveMember(
   return redisClient.hDel(key, connectionId);
 }
 
-export function removeActiveConnection(
-  redisClient: RedisClient,
-  key: string,
-  nspRoomId: string
-): Promise<number> {
-  return redisClient.hDel(key, nspRoomId);
-}
-
 export function getActiveMember(
   redisClient: RedisClient,
   key: string,

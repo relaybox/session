@@ -7,6 +7,8 @@ import {
   broadcastSessionDestroy,
   broadcastUserEvent,
   deleteAuthUser,
+  deleteAuthUserConnection,
+  deleteConnectionPresenceSets,
   destroyRoomSubscriptions,
   formatKey,
   formatPresenceSubscription,
@@ -34,7 +36,7 @@ import {
   unsetSessionHeartbeat
 } from '@/module/service';
 import { getLogger } from '@/util/logger.util';
-import { RedisClient } from '@/lib/redis';
+import { RedisClient, RedisClientMultiReturnType } from '@/lib/redis';
 import {
   AuthUser,
   AuthUserEvent,
@@ -44,6 +46,7 @@ import {
   SubscriptionType
 } from '@/module/types';
 import { PoolClient } from 'pg';
+import { RedisClientType } from 'redis';
 
 const logger = getLogger('session-service');
 
@@ -65,7 +68,10 @@ const mockRepository = vi.hoisted(() => ({
   getInactiveConnectionIds: vi.fn(),
   addAuthUser: vi.fn(),
   getAuthUser: vi.fn(),
-  deleteAuthUser: vi.fn()
+  deleteAuthUser: vi.fn(),
+  deleteConnectionPresenceSets: vi.fn(),
+  deleteAuthUserConnection: vi.fn(),
+  getAuthUserConnectionCount: vi.fn()
 }));
 
 vi.mock('@/module/repository', () => mockRepository);
@@ -227,22 +233,22 @@ describe('service', () => {
 
   describe('removeActiveMember', () => {
     it('should remove active member from cahced rooms by deleting userdata and shifting active member index', async () => {
-      const uid = '12345';
+      const connectionId = '12345';
       const nspRoomId = 'nsp:room1';
       const keyPrefix = formatKey([KeyPrefix.PRESENCE, nspRoomId]);
 
-      await removeActiveMember(logger, mockRedisClient, uid, nspRoomId);
+      await removeActiveMember(logger, mockRedisClient, connectionId, nspRoomId);
 
       expect(mockRepository.removeActiveMember).toHaveBeenCalledWith(
         mockRedisClient,
         `${keyPrefix}:${KeySuffix.MEMBERS}`,
-        uid
+        connectionId
       );
 
       expect(mockRepository.shiftActiveMember).toHaveBeenCalledWith(
         mockRedisClient,
         `${keyPrefix}:${KeySuffix.INDEX}`,
-        uid
+        connectionId
       );
     });
   });
@@ -642,6 +648,68 @@ describe('service', () => {
       expect(mockRepository.getCachedRooms).toHaveBeenCalledWith(mockRedisClient, cachedRoomsKey);
       expect(mockRepository.purgeCachedRooms).toHaveBeenCalledTimes(2);
       expect(mockRepository.deleteSubscription).toHaveBeenCalledTimes(12);
+    });
+  });
+
+  describe('deleteConnectionPresenceSets', () => {
+    it('should delete all presence sets for a given connectionId', async () => {
+      const connectionId = '12345';
+
+      const connectionPresenceSetsKey = formatKey([
+        KeyPrefix.CONNECTION,
+        connectionId,
+        KeySuffix.PRESENCE_SETS
+      ]);
+
+      await deleteConnectionPresenceSets(logger, mockRedisClient, connectionId);
+
+      expect(mockRepository.deleteConnectionPresenceSets).toHaveBeenCalledWith(
+        mockPgClient,
+        connectionPresenceSetsKey
+      );
+    });
+  });
+
+  describe('deleteAuthUserConnection', () => {
+    it('should delete a connection by id and return the remaining connections count', async () => {
+      const appPid = 'test-app-pid';
+      const clientId = 'test-client-id';
+      const connectionId = '12345';
+      const authUserConnectionCount = 1;
+
+      const mockRedisClientMultiReturnType = {
+        exec: vi.fn().mockResolvedValue([1, authUserConnectionCount])
+      } as unknown as RedisClientMultiReturnType;
+
+      const mockRedisClient = {
+        multi: vi.fn().mockReturnValue(mockRedisClientMultiReturnType)
+      } as unknown as RedisClient;
+
+      const connectionPresenceSetsKey = formatKey([
+        KeyPrefix.CLIENT,
+        appPid,
+        clientId,
+        KeySuffix.CONNECTIONS
+      ]);
+
+      const remainingAuthUserConnectionsCount = await deleteAuthUserConnection(
+        logger,
+        mockRedisClient,
+        appPid,
+        clientId,
+        connectionId
+      );
+
+      expect(mockRepository.deleteAuthUserConnection).toHaveBeenCalledWith(
+        mockRedisClientMultiReturnType,
+        connectionPresenceSetsKey,
+        connectionId
+      );
+      expect(mockRepository.getAuthUserConnectionCount).toHaveBeenCalledWith(
+        mockRedisClientMultiReturnType,
+        connectionPresenceSetsKey
+      );
+      expect(remainingAuthUserConnectionsCount).toBe(authUserConnectionCount);
     });
   });
 });

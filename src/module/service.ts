@@ -177,24 +177,6 @@ export async function removeActiveMember(
   }
 }
 
-export async function removeActiveConnection(
-  logger: Logger,
-  redisClient: RedisClient,
-  connectionId: string,
-  nspRoomId: string
-): Promise<void> {
-  logger.debug(`Removing active connection`, { connectionId });
-
-  const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
-
-  try {
-    await repository.removeActiveConnection(redisClient, key, nspRoomId);
-  } catch (err) {
-    logger.error(`Failed to remove active connection`, { err });
-    throw err;
-  }
-}
-
 export async function deleteConnectionPresenceSets(
   logger: Logger,
   redisClient: RedisClient,
