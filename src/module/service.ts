@@ -160,20 +160,29 @@ export async function getActiveMember(
 export async function removeActiveMember(
   logger: Logger,
   redisClient: RedisClient,
-  uid: string,
+  connectionId: string,
   nspRoomId: string
 ): Promise<void> {
-  logger.debug(`Removing active member`, { uid, nspRoomId });
+  logger.debug(`Removing active member`, { connectionId, nspRoomId });
 
   const keyPrefix = formatKey([KeyPrefix.PRESENCE, nspRoomId]);
 
   try {
     await Promise.all([
-      sessionRepository.removeActiveMember(redisClient, `${keyPrefix}:${KeySuffix.MEMBERS}`, uid),
-      sessionRepository.shiftActiveMember(redisClient, `${keyPrefix}:${KeySuffix.INDEX}`, uid)
+      sessionRepository.removeActiveMember(
+        redisClient,
+        `${keyPrefix}:${KeySuffix.MEMBERS}`,
+        connectionId
+      ),
+
+      sessionRepository.shiftActiveMember(
+        redisClient,
+        `${keyPrefix}:${KeySuffix.INDEX}`,
+        connectionId
+      )
     ]);
   } catch (err) {
-    logger.error(`Failed to remove active member`, { uid, nspRoomId, err });
+    logger.error(`Failed to remove active member`, { connectionId, nspRoomId, err });
     throw err;
   }
 }
@@ -615,43 +624,6 @@ export async function getConnectionPresenceSets(
     return Object.keys(connectionPresence);
   } catch (err) {
     logger.error(`Failed to get connection presence`, { connectionId, err });
-    throw err;
-  }
-}
-
-export async function handleSessionSoftDelete(
-  logger: Logger,
-  redisClient: RedisClient,
-  uid: string,
-  connectionId: string,
-  nspRoomId: string,
-  data: SessionData & Partial<SocketConnectionEvent>
-): Promise<void> {
-  logger.debug(`Soft deleting session`, uid);
-
-  try {
-    const activeMember = await getActiveMember(logger, redisClient, uid, nspRoomId);
-
-    if (activeMember) {
-      const parsedActivemember = JSON.parse(activeMember);
-
-      /**
-       * A different connectionId attached to the same clientId means the client
-       * rejoined the same presence set during the session soft delete timout.
-       * Return early to maintain the maintain the most up to date presence set
-       */
-      if (parsedActivemember.connectionId !== connectionId) {
-        logger.debug(`Session soft delete ignored, active member is from different connection`);
-        return;
-      }
-    }
-
-    await Promise.all([
-      removeActiveMember(logger, redisClient, uid, nspRoomId),
-      broadcastSessionDestroy(logger, uid, nspRoomId, data)
-    ]);
-  } catch (err: unknown) {
-    logger.error(`Failed to soft delete session`, { err });
     throw err;
   }
 }

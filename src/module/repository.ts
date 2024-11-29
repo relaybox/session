@@ -41,9 +41,9 @@ export function deleteSubscription(
 export function removeActiveMember(
   redisClient: RedisClient,
   key: string,
-  clientId: string
+  connectionId: string
 ): Promise<number> {
-  return redisClient.hDel(key, clientId);
+  return redisClient.hDel(key, connectionId);
 }
 
 export function removeActiveConnection(
@@ -65,9 +65,9 @@ export function getActiveMember(
 export async function shiftActiveMember(
   redisClient: RedisClient,
   key: string,
-  clientId: string
+  connectionId: string
 ): Promise<number> {
-  return redisClient.lRem(key, 0, clientId);
+  return redisClient.lRem(key, 0, connectionId);
 }
 
 export async function purgeSessionState(

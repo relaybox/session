@@ -2,9 +2,10 @@ import { Pool } from 'pg';
 import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
+  broadcastSessionDestroy,
   deleteConnectionPresenceSets,
   getConnectionPresenceSets,
-  handleSessionSoftDelete
+  removeActiveMember
 } from '@/module/service';
 import { SessionData, SocketConnectionEvent } from '@/module/types';
 
@@ -32,8 +33,12 @@ export async function handler(
 
     if (presenceSets.length > 0) {
       await Promise.all(
-        presenceSets.map(async (nspRoomId) =>
-          handleSessionSoftDelete(logger, redisClient, uid, connectionId, nspRoomId, data)
+        presenceSets.map(
+          async (nspRoomId) =>
+            await Promise.all([
+              removeActiveMember(logger, redisClient, connectionId, nspRoomId),
+              broadcastSessionDestroy(logger, uid, nspRoomId, data)
+            ])
         )
       );
     }
