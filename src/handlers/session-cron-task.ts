@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
-  deleteConnectionPresenceSets,
+  deletePresenceSets,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
   getActiveSession,
@@ -39,7 +39,7 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
           destroyUserSubscriptions(logger, redisClient, connectionId),
           setSessionDisconnected(logger, pgClient, connectionId),
           unsetSessionHeartbeat(logger, redisClient, connectionId),
-          deleteConnectionPresenceSets(logger, redisClient, connectionId)
+          deletePresenceSets(logger, redisClient, connectionId)
         ]);
 
         logger.debug(`Connection clean up complete`, { connectionId });

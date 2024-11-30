@@ -3,7 +3,7 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   broadcastSessionDestroy,
-  deleteConnectionPresenceSets,
+  deletePresenceSets,
   getConnectionPresenceSets,
   removeActiveMember
 } from '@/module/service';
@@ -42,7 +42,7 @@ export async function handler(
       );
     }
 
-    await deleteConnectionPresenceSets(logger, redisClient, connectionId);
+    await deletePresenceSets(logger, redisClient, connectionId);
   } catch (err) {
     logger.error(`Session user destroy failed`, err);
     throw err;

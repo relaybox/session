@@ -177,7 +177,7 @@ export async function removeActiveMember(
   }
 }
 
-export async function deleteConnectionPresenceSets(
+export async function deletePresenceSets(
   logger: Logger,
   redisClient: RedisClient,
   connectionId: string
@@ -187,7 +187,7 @@ export async function deleteConnectionPresenceSets(
   const key = formatKey([KeyPrefix.CONNECTION, connectionId, KeySuffix.PRESENCE_SETS]);
 
   try {
-    await repository.deleteConnectionPresenceSets(redisClient, key);
+    await repository.deletePresenceSets(redisClient, key);
   } catch (err) {
     logger.error(`Failed to delete presence sets for connection`, { err });
     throw err;

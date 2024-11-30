@@ -52,7 +52,7 @@ export async function handler(
 
       if (user) {
         /**
-         * Delete current connection and return any remaining connections for the user.
+         * Delete current connection and return any remaining connections for the user (by clientId).
          * If no remaining active connections, continue with deleting the user.
          * If active connections are found it means that the user is still active
          * following multiple sessions being opened

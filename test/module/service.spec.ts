@@ -8,7 +8,7 @@ import {
   broadcastUserEvent,
   deleteAuthUser,
   deleteAuthUserConnection,
-  deleteConnectionPresenceSets,
+  deletePresenceSets,
   destroyRoomSubscriptions,
   formatKey,
   formatPresenceSubscription,
@@ -69,7 +69,7 @@ const mockRepository = vi.hoisted(() => ({
   addAuthUser: vi.fn(),
   getAuthUser: vi.fn(),
   deleteAuthUser: vi.fn(),
-  deleteConnectionPresenceSets: vi.fn(),
+  deletePresenceSets: vi.fn(),
   deleteAuthUserConnection: vi.fn(),
   getAuthUserConnectionCount: vi.fn()
 }));
@@ -651,7 +651,7 @@ describe('service', () => {
     });
   });
 
-  describe('deleteConnectionPresenceSets', () => {
+  describe('deletePresenceSets', () => {
     it('should delete all presence sets for a given connectionId', async () => {
       const connectionId = '12345';
 
@@ -661,9 +661,9 @@ describe('service', () => {
         KeySuffix.PRESENCE_SETS
       ]);
 
-      await deleteConnectionPresenceSets(logger, mockRedisClient, connectionId);
+      await deletePresenceSets(logger, mockRedisClient, connectionId);
 
-      expect(mockRepository.deleteConnectionPresenceSets).toHaveBeenCalledWith(
+      expect(mockRepository.deletePresenceSets).toHaveBeenCalledWith(
         mockPgClient,
         connectionPresenceSetsKey
       );

@@ -178,9 +178,6 @@ export function getConnectionPresenceSets(
   return redisClient.hGetAll(key);
 }
 
-export async function deleteConnectionPresenceSets(
-  redisClient: RedisClient,
-  key: string
-): Promise<number> {
+export async function deletePresenceSets(redisClient: RedisClient, key: string): Promise<number> {
   return redisClient.del(key);
 }

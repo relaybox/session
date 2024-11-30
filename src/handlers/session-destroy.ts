@@ -4,7 +4,7 @@ import { getLogger } from '@/util/logger.util';
 import {
   broadcastAuthUserDisconnectEvent,
   deleteAuthUserConnections,
-  deleteConnectionPresenceSets,
+  deletePresenceSets,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
   getActiveSession,
@@ -46,7 +46,7 @@ export async function handler(
       destroyUserSubscriptions(logger, redisClient, connectionId),
       setSessionDisconnected(logger, pgClient, connectionId),
       unsetSessionHeartbeat(logger, redisClient, connectionId),
-      deleteConnectionPresenceSets(logger, redisClient, connectionId)
+      deletePresenceSets(logger, redisClient, connectionId)
     ]);
 
     if (user) {
