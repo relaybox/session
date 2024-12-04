@@ -8,6 +8,7 @@ import {
   KeyPrefix,
   KeySuffix,
   SessionData,
+  SocketConnectionEvent,
   SubscriptionType
 } from './types';
 import { RedisClient } from '@/lib/redis';
@@ -654,22 +655,28 @@ export async function destroyUserSubscriptions(
 // DESTROY ACTIVE MEMBERS HERE!!!
 // This also happens when a uer diconnects but that relies on the connetion event
 // Also destroy here to ensure heartbeat managed hard delete
-// export async function destoryActiveMember(logger: Logger, redisClient: RedisClient, connectionId: string, clientId: string) {
-//   logger.debug(`Removing active member for connection`);
-//   const presenceSets = await getConnectionPresenceSets(logger, redisClient, connectionId);
+export async function destroyActiveMember(
+  logger: Logger,
+  redisClient: RedisClient,
+  connectionId: string,
+  uid?: string,
+  data?: SessionData & Partial<SocketConnectionEvent>
+) {
+  logger.debug(`Removing active member for connection`);
+  const presenceSets = await getConnectionPresenceSets(logger, redisClient, connectionId);
 
-//     if (presenceSets.length > 0) {
-//       await Promise.all(
-//         presenceSets.map(
-//           async (nspRoomId) =>
-//             await Promise.all([
-//               removeActiveMember(logger, redisClient, connectionId, nspRoomId),
-//               broadcastSessionDestroy(logger, uid, nspRoomId, data)
-//             ])
-//         )
-//       );
-//     }
-//   }
+  if (presenceSets.length > 0) {
+    await Promise.all(
+      presenceSets.map(async (nspRoomId) => {
+        await removeActiveMember(logger, redisClient, connectionId, nspRoomId);
+
+        if (uid && data) {
+          broadcastSessionDestroy(logger, uid, nspRoomId, data);
+        }
+      })
+    );
+  }
+}
 
 export async function getConnectionPresenceSets(
   logger: Logger,

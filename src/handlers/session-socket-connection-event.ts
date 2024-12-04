@@ -27,7 +27,7 @@ export async function handler(
 
   const { appPid, connectionId, socketId, connectionEventType, user } = data;
 
-  logger.info(`Processing connection event of type ${connectionEventType} for ${connectionId}`, {
+  logger.info(`Processing connection event of type "${connectionEventType}" for ${connectionId}`, {
     connectionEventType,
     connectionId
   });

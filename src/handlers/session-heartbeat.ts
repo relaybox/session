@@ -11,6 +11,8 @@ export async function handler(
   redisClient: RedisClient,
   data: SessionData & Partial<SocketConnectionEvent>
 ): Promise<void> {
+  logger.info('Handling session heartbeat event');
+
   try {
     await setSessionHeartbeat(logger, redisClient, data);
   } catch (err: any) {

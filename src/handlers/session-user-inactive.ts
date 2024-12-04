@@ -1,12 +1,7 @@
 import { Pool } from 'pg';
 import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
-import {
-  broadcastSessionDestroy,
-  deletePresenceSets,
-  getConnectionPresenceSets,
-  removeActiveMember
-} from '@/module/service';
+import { deletePresenceSets, destroyActiveMember } from '@/module/service';
 import { SessionData, SocketConnectionEvent } from '@/module/types';
 
 const logger = getLogger('session-user-inactive');
@@ -25,23 +20,12 @@ export async function handler(
 ): Promise<void> {
   const { uid, connectionId } = data;
 
-  logger.info(`Processing user inactive event for ${uid}`, { connectionId });
+  logger.info(`Processing user inactive event for ${connectionId}, (uid: ${uid})`, {
+    connectionId
+  });
 
   try {
-    const presenceSets = await getConnectionPresenceSets(logger, redisClient, connectionId);
-
-    if (presenceSets.length > 0) {
-      await Promise.all(
-        presenceSets.map(
-          async (nspRoomId) =>
-            await Promise.all([
-              removeActiveMember(logger, redisClient, connectionId, nspRoomId),
-              broadcastSessionDestroy(logger, uid, nspRoomId, data)
-            ])
-        )
-      );
-    }
-
+    await destroyActiveMember(logger, redisClient, connectionId, uid, data);
     await deletePresenceSets(logger, redisClient, connectionId);
   } catch (err) {
     logger.error(`Session user destroy failed`, err);

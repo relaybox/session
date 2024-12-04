@@ -3,6 +3,7 @@ import { RedisClient } from '@/lib/redis';
 import { getLogger } from '@/util/logger.util';
 import {
   deletePresenceSets,
+  destroyActiveMember,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
   getActiveSession,
@@ -26,7 +27,7 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
       return;
     }
 
-    logger.debug(`${inactivConnectionIds.length} inactive connections found`, {
+    logger.info(`${inactivConnectionIds.length} inactive connections found`, {
       inactivConnectionIds
     });
 
@@ -37,10 +38,12 @@ export async function handler(pgPool: Pool, redisClient: RedisClient): Promise<v
         await Promise.all([
           destroyRoomSubscriptions(logger, redisClient, connectionId),
           destroyUserSubscriptions(logger, redisClient, connectionId),
+          destroyActiveMember(logger, redisClient, connectionId),
           setSessionDisconnected(logger, pgClient, connectionId),
-          unsetSessionHeartbeat(logger, redisClient, connectionId),
-          deletePresenceSets(logger, redisClient, connectionId)
+          unsetSessionHeartbeat(logger, redisClient, connectionId)
         ]);
+
+        await deletePresenceSets(logger, redisClient, connectionId);
 
         logger.debug(`Connection clean up complete`, { connectionId });
       }

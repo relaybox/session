@@ -34,7 +34,7 @@ async function handler({ id, name, data }: Job) {
     throw new Error('Database connections not initialized');
   }
 
-  logger.info(`Processing job ${id} (${name})`, { data });
+  logger.debug(`Processing job ${id} (${name})`, { data });
 
   return router(pgPool, redisClient, name as JobName, data);
 }

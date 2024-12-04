@@ -5,6 +5,7 @@ import {
   broadcastAuthUserDisconnectEvent,
   deleteAuthUserConnections,
   deletePresenceSets,
+  destroyActiveMember,
   destroyRoomSubscriptions,
   destroyUserSubscriptions,
   getActiveSession,
@@ -44,10 +45,12 @@ export async function handler(
     await Promise.all([
       destroyRoomSubscriptions(logger, redisClient, connectionId),
       destroyUserSubscriptions(logger, redisClient, connectionId),
+      destroyActiveMember(logger, redisClient, connectionId, uid, data),
       setSessionDisconnected(logger, pgClient, connectionId),
-      unsetSessionHeartbeat(logger, redisClient, connectionId),
-      deletePresenceSets(logger, redisClient, connectionId)
+      unsetSessionHeartbeat(logger, redisClient, connectionId)
     ]);
+
+    await deletePresenceSets(logger, redisClient, connectionId);
 
     if (user) {
       logger.debug(`Auth user attached to session, checking if online`, { uid, connectionId });
