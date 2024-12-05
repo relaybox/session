@@ -171,6 +171,13 @@ export function getAuthUserConnectionCount(redisClient: any, key: string): Promi
   return redisClient.hLen(key);
 }
 
+export function getAuthUserConnections(
+  redisClient: any,
+  key: string
+): Promise<{ [x: string]: string }> {
+  return redisClient.hGetAll(key);
+}
+
 export function getConnectionPresenceSets(
   redisClient: RedisClient,
   key: string

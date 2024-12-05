@@ -38,6 +38,10 @@ export async function handler(
     await saveSessionData(logger, pgClient, appId, data);
 
     if (connectionEventType === SocketConnectionEventType.DISCONNECT) {
+      /**
+       * Find the original connection event id for this socket connection.
+       * If not found, exit.
+       */
       const socketConnectionEventId = await getConnectionEventId(
         logger,
         pgClient,
@@ -52,12 +56,13 @@ export async function handler(
 
       if (user) {
         /**
+         * An auth user is attached to the session.
          * Delete current connection and return any remaining connections for the user (by clientId).
-         * If no remaining active connections, continue with deleting the user.
+         * If no remaining active connections, continue with deleting the auth user.
          * If active connections are found it means that the user is still active
          * following multiple sessions being opened
          */
-        const remainingAuthUserConnectionsCount = await deleteAuthUserConnection(
+        const remainingAuthUserConnections = await deleteAuthUserConnection(
           logger,
           redisClient,
           appPid,
@@ -65,7 +70,9 @@ export async function handler(
           connectionId
         );
 
-        if (remainingAuthUserConnectionsCount === 0) {
+        console.log('REMAINING:', remainingAuthUserConnections);
+
+        if (remainingAuthUserConnections.length === 0) {
           await deleteAuthUser(logger, redisClient, appPid, user);
           broadcastAuthUserDisconnectEvent(logger, user, data);
         }

@@ -514,22 +514,32 @@ export async function deleteAuthUserConnection(
   appPid: string,
   clientId: string,
   connectionId: string
-): Promise<number> {
-  logger.debug(`Deleting auth user connection`, { appPid, clientId });
+): Promise<SessionData[]> {
+  logger.debug(`Purging auth user connections`, { appPid, clientId });
 
   try {
     const key = formatKey([KeyPrefix.CLIENT, appPid, clientId, KeySuffix.CONNECTIONS]);
 
-    const multi = redisClient.multi();
+    /**
+     * Delete this connection reference
+     */
+    await repository.deleteAuthUserConnection(redisClient, key, connectionId);
 
-    await repository.deleteAuthUserConnection(multi, key, connectionId);
-    await repository.getAuthUserConnectionCount(multi, key);
+    /**
+     * Next, fetch other connection references by client id.
+     * If found, check if they are still active
+     */
+    const connectionIds = await repository.getAuthUserConnections(redisClient, key);
 
-    const [_, remainingAuthUserConnections] = await multi.exec();
+    const activeConnections = await Promise.all(
+      Object.keys(connectionIds).map(async (connectionId: string) =>
+        getActiveSession(logger, redisClient, connectionId)
+      )
+    );
 
-    return remainingAuthUserConnections as number;
-  } catch (err: any) {
-    logger.error(`Failed to delete auth user connection`, { err });
+    return activeConnections.filter((activeSession) => activeSession);
+  } catch (err: unknown) {
+    logger.error(`Failed to purge auth user connections`, { err });
     throw err;
   }
 }
