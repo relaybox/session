@@ -508,6 +508,11 @@ export async function deleteAuthUser(
   }
 }
 
+/**
+ * Called from connection disconnect event
+ * Removes connection reference for client id
+ * Returns number of remaining active connections by referencing active session heartbeat values
+ */
 export async function deleteAuthUserConnection(
   logger: Logger,
   redisClient: RedisClient,
@@ -532,7 +537,7 @@ export async function deleteAuthUserConnection(
     const connectionIds = await repository.getAuthUserConnections(redisClient, key);
 
     const activeConnections = await Promise.all(
-      Object.keys(connectionIds).map(async (connectionId: string) =>
+      Object.keys(connectionIds).map((connectionId: string) =>
         getActiveSession(logger, redisClient, connectionId)
       )
     );
