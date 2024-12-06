@@ -17,6 +17,7 @@ export enum KeyNamespace {
   SUBSCRIPTIONS = 'subscriptions',
   PRESENCE = 'presence',
   METRICS = 'metrics',
+  INTELLECT = 'intellect',
   USERS = 'users'
 }
 

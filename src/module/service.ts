@@ -641,7 +641,8 @@ export async function destroyRoomSubscriptions(
             KeyNamespace.SUBSCRIPTIONS
           ),
           purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.PRESENCE),
-          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS)
+          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS),
+          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.INTELLECT)
         ])
       )
     );
