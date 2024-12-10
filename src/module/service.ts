@@ -82,7 +82,7 @@ export async function purgeSubscriptions(
   nspRoomId: string,
   keyNamespace: KeyNamespace
 ): Promise<void> {
-  logger.debug(`Deleting all ${keyNamespace} subscriptions`, {
+  logger.info(`Deleting all ${keyNamespace} subscriptions, ${connectionId}`, {
     connectionId,
     nspRoomId,
     keyNamespace
@@ -98,6 +98,8 @@ export async function purgeSubscriptions(
         repository.deleteSubscription(redisClient, key, subscription)
       )
     );
+
+    logger.info(`Finshed deleting all ${keyNamespace} subscriptions, ${connectionId}`);
   } catch (err) {
     logger.error(`Failed to delete subscriptions`, { connectionId, nspRoomId, keyNamespace, err });
     throw err;
@@ -626,26 +628,35 @@ export async function destroyRoomSubscriptions(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<any> {
-  const rooms = await getCachedRooms(logger, redisClient, connectionId);
+  logger.debug(`Destroying room subscriptions for ${connectionId}`, { connectionId });
 
-  if (rooms && rooms.length > 0) {
-    return Promise.all(
-      rooms.map(async (nspRoomId) =>
-        Promise.all([
-          purgeCachedRooms(logger, redisClient, connectionId),
-          purgeSubscriptions(
-            logger,
-            redisClient,
-            connectionId,
-            nspRoomId,
-            KeyNamespace.SUBSCRIPTIONS
-          ),
-          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.PRESENCE),
-          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS),
-          purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.INTELLECT)
-        ])
-      )
-    );
+  try {
+    const rooms = await getCachedRooms(logger, redisClient, connectionId);
+
+    logger.debug(`${rooms?.length} rooms found for ${connectionId}`);
+
+    if (rooms && rooms.length > 0) {
+      return Promise.all(
+        rooms.map(async (nspRoomId) =>
+          Promise.all([
+            purgeCachedRooms(logger, redisClient, connectionId),
+            purgeSubscriptions(
+              logger,
+              redisClient,
+              connectionId,
+              nspRoomId,
+              KeyNamespace.SUBSCRIPTIONS
+            ),
+            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.PRESENCE),
+            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS),
+            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.INTELLECT)
+          ])
+        )
+      );
+    }
+  } catch (err: unknown) {
+    logger.error(`Failed to destroy room subscriptions for ${connectionId}:`, err);
+    throw err;
   }
 }
 
@@ -654,22 +665,29 @@ export async function destroyUserSubscriptions(
   redisClient: RedisClient,
   connectionId: string
 ): Promise<any> {
-  const users = await getCachedUsers(logger, redisClient, connectionId);
+  logger.debug(`Destroying user subscriptions for ${connectionId}`, { connectionId });
 
-  if (users && users.length > 0) {
-    return Promise.all(
-      users.map(async (clientId) =>
-        Promise.all([
-          purgeCachedUsers(logger, redisClient, connectionId),
-          purgeUserSubscriptions(logger, redisClient, connectionId, clientId)
-        ])
-      )
-    );
+  try {
+    const users = await getCachedUsers(logger, redisClient, connectionId);
+
+    if (users && users.length > 0) {
+      return Promise.all(
+        users.map(async (clientId) =>
+          Promise.all([
+            purgeCachedUsers(logger, redisClient, connectionId),
+            purgeUserSubscriptions(logger, redisClient, connectionId, clientId)
+          ])
+        )
+      );
+    }
+  } catch (err: unknown) {
+    logger.error(`Failed to destroy user subscriptions for ${connectionId}:`, err);
+    throw err;
   }
 }
 
 // DESTROY ACTIVE MEMBERS HERE!!!
-// This also happens when a uer diconnects but that relies on the connetion event
+// This also happens when a user diconnects but that relies on the connetion event
 // Also destroy here to ensure heartbeat managed hard delete
 export async function destroyActiveMember(
   logger: Logger,
@@ -677,20 +695,26 @@ export async function destroyActiveMember(
   connectionId: string,
   uid?: string,
   data?: SessionData & Partial<SocketConnectionEvent>
-) {
-  logger.debug(`Removing active member for connection`);
-  const presenceSets = await getConnectionPresenceSets(logger, redisClient, connectionId);
+): Promise<void> {
+  logger.debug(`Removing active member for connection ${connectionId}`, { connectionId, uid });
 
-  if (presenceSets.length > 0) {
-    await Promise.all(
-      presenceSets.map(async (nspRoomId) => {
-        await removeActiveMember(logger, redisClient, connectionId, nspRoomId);
+  try {
+    const presenceSets = await getConnectionPresenceSets(logger, redisClient, connectionId);
 
-        if (uid && data) {
-          broadcastSessionDestroy(logger, uid, nspRoomId, data);
-        }
-      })
-    );
+    if (presenceSets.length > 0) {
+      await Promise.all(
+        presenceSets.map(async (nspRoomId) => {
+          await removeActiveMember(logger, redisClient, connectionId, nspRoomId);
+
+          if (uid && data) {
+            broadcastSessionDestroy(logger, uid, nspRoomId, data);
+          }
+        })
+      );
+    }
+  } catch (err) {
+    logger.error(`Failed to remove active member for connection ${connectionId}`, err);
+    throw err;
   }
 }
 
