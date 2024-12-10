@@ -70,8 +70,6 @@ export async function handler(
           connectionId
         );
 
-        console.log('REMAINING:', remainingAuthUserConnections);
-
         if (remainingAuthUserConnections.length === 0) {
           await deleteAuthUser(logger, redisClient, appPid, user);
           broadcastAuthUserDisconnectEvent(logger, user, data);
