@@ -636,20 +636,20 @@ export async function destroyRoomSubscriptions(
     logger.debug(`${rooms?.length} rooms found for ${connectionId}`);
 
     if (rooms && rooms.length > 0) {
+      const subscriptions = [
+        KeyNamespace.SUBSCRIPTIONS,
+        KeyNamespace.PRESENCE,
+        KeyNamespace.METRICS,
+        KeyNamespace.INTELLECT
+      ];
+
       return Promise.all(
         rooms.map(async (nspRoomId) =>
           Promise.all([
             purgeCachedRooms(logger, redisClient, connectionId),
-            purgeSubscriptions(
-              logger,
-              redisClient,
-              connectionId,
-              nspRoomId,
-              KeyNamespace.SUBSCRIPTIONS
-            ),
-            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.PRESENCE),
-            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.METRICS),
-            purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, KeyNamespace.INTELLECT)
+            ...subscriptions.map((subscription: KeyNamespace) =>
+              purgeSubscriptions(logger, redisClient, connectionId, nspRoomId, subscription)
+            )
           ])
         )
       );
