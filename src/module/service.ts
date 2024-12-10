@@ -82,7 +82,7 @@ export async function purgeSubscriptions(
   nspRoomId: string,
   keyNamespace: KeyNamespace
 ): Promise<void> {
-  logger.info(`Deleting all ${keyNamespace} subscriptions, ${connectionId}`, {
+  logger.debug(`Deleting all ${keyNamespace} subscriptions, ${connectionId}`, {
     connectionId,
     nspRoomId,
     keyNamespace
@@ -99,7 +99,7 @@ export async function purgeSubscriptions(
       )
     );
 
-    logger.info(`Finshed deleting all ${keyNamespace} subscriptions, ${connectionId}`);
+    logger.debug(`Finshed deleting all ${keyNamespace} subscriptions, ${connectionId}`);
   } catch (err) {
     logger.error(`Failed to delete subscriptions`, { connectionId, nspRoomId, keyNamespace, err });
     throw err;
