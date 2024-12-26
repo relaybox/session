@@ -544,6 +544,8 @@ export async function deleteAuthUserConnection(
       )
     );
 
+    console.log('activeConnections', activeConnections);
+
     return activeConnections.filter((activeSession) => activeSession);
   } catch (err: unknown) {
     logger.error(`Failed to purge auth user connections`, { err });
