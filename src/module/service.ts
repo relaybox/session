@@ -687,7 +687,7 @@ export async function destroyUserSubscriptions(
 }
 
 // DESTROY ACTIVE MEMBERS HERE!!!
-// This also happens when a user diconnects but that relies on the connetion event
+// This also happens when a user diconnects but that relies on the connection event
 // Also destroy here to ensure heartbeat managed hard delete
 export async function destroyActiveMember(
   logger: Logger,
